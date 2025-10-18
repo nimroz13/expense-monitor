@@ -1,0 +1,583 @@
+/* ============================
+   index.css - Final (inputs dark fix)
+   ============================ */
+
+/* ----------------------------
+   THEME VARIABLES (light + dark)
+   ---------------------------- */
+
+/* Light theme (default) */
+:root {
+  --bg: #e4eef5;          /* page background - very light blue */
+  --text: #153243;        /* dark teal-gray text */
+  --muted: #5f6b78;
+  --accent: #1fbf7a;      /* green accent */
+  --card: #eaf3f0;        /* card background (soft) */
+  --cell: #ffffff;        /* table cell */
+  --border: rgba(21,50,67,0.08);
+  --arrow: #f59e3b;       /* month arrows orange */
+  --edit: #3f8cf0;
+  --edit-hover: #2b6fd5;
+  --delete: #ef6b6b;
+  --delete-hover: #c84f4f;
+  --download: #1fbf7a;
+  --control-bg: #f7efef;
+  --control-border: #d8e6ea;
+  --track-bg: #d4e8f8;
+  --track-border: #bcdcf5;
+  --knob-bg: #ecb23c;
+  --knob-border: #f09329;
+  --knob-text: #fff;
+  --transition: 180ms;
+}
+
+
+/* Dark theme overrides */
+html.dark {
+  --bg: #0f1720;
+  --text: #e6eef2;
+  --muted: #bfc9cf;
+  --accent: #49d77a;
+  --card: #18303b;
+  --cell: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.06);
+  --arrow: #f39c12;
+  --edit: #4a90e2;
+  --edit-hover: #2f6dd1;
+  --delete: #f56565;
+  --delete-hover: #c44b4b;
+  --download: #25ca54;
+  --control-bg: #18222b;      /* <--- control background in dark mode */
+  --control-border: #3d4b59;  /* <--- control border in dark mode */
+
+  /* Toggle (dark) */
+  --track-bg: #2b3a53;
+  --track-border: #77859a;
+  --knob-bg: #fbff84;
+  --knob-border: #f4e751;
+  --knob-text: #0f1720;
+}
+
+/* ----------------------------
+   BASE / LAYOUT
+   ---------------------------- */
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  transition: background var(--transition), color var(--transition);
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.5rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+/* ----------------------------
+   HEADING
+   ---------------------------- */
+.main-heading {
+  text-align: center;
+  margin: 10px 0 6px 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.main-heading::after {
+  content: "";
+  display: block;
+  width: 70px;
+  height: 3px;
+  background: var(--accent);
+  margin: 5px auto 0;
+  border-radius: 3px;
+}
+
+/* ----------------------------
+   TOP CONTROLS
+   ---------------------------- */
+.top-controls {
+  width: 100%;
+  padding-left: 8px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+/* main top row: currency (left) + theme/download (right) */
+.top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.top-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* month selector row */
+.month-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* currency select */
+.top-row label {
+  font-weight: 500;
+  color: var(--text);
+}
+.top-row select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+/* ----------------------------
+   MONTH SELECTOR
+   ---------------------------- */
+.month-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.month-input {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: var(--text);
+  font-size: 0.9rem;
+  transition: background var(--transition), color var(--transition), border var(--transition);
+  appearance: none;
+  -webkit-appearance: none;
+}
+.month-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* dark mode calendar fix */
+html.dark .month-input {
+  background-color: var(--control-bg);
+  color: var(--text);
+  border-color: var(--control-border);
+}
+/* make native picker icon visible in dark mode */
+html.dark input[type="month"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) contrast(1.2);
+  cursor: pointer;
+}
+
+/* month arrows */
+.month-arrow-btn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: var(--arrow);
+  color: #000;
+  transition: filter var(--transition);
+}
+.month-arrow-btn:hover { filter: brightness(0.95); }
+
+/* ----------------------------
+   BUTTONS
+   ---------------------------- */
+.add-btn {
+  background: var(--download);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: transform var(--transition);
+  text-align: center;
+}
+.add-btn:hover { transform: translateY(-1px); }
+
+.edit-btn, .delete-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  margin: 3px 4px 3px 0;
+  color: #fff;
+  transition: background var(--transition);
+}
+.edit-btn { background: var(--edit); }
+.edit-btn:hover { background: var(--edit-hover); }
+.delete-btn { background: var(--delete); }
+.delete-btn:hover { background: var(--delete-hover); }
+
+/* ----------------------------
+   VIEW STATS BUTTON
+   ---------------------------- */
+.view-stats-btn {
+  display: block;
+  margin: 10px auto;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background var(--transition);
+}
+.view-stats-btn:hover { background: var(--accent); filter: brightness(0.9); }
+
+/* ----------------------------
+   STATS PAGE
+   ---------------------------- */
+.stats-page {
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 20px;
+  text-align: center;
+}
+.back-btn {
+  background: var(--edit);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  transition: background var(--transition);
+}
+.back-btn:hover { background: var(--edit-hover); }
+.stats-info {
+  margin-bottom: 20px;
+  font-size: 1rem;
+  color: var(--text);
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+
+/* ----------------------------
+   TABLES & CARDS
+   ---------------------------- */
+.tables-container {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  box-sizing: border-box;
+}
+.table-wrapper {
+  flex: 1;
+  max-width: 49%;
+  background: var(--card);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.88rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  position: relative;
+  padding-bottom: 56px;
+  box-sizing: border-box;
+}
+.table-wrapper h3 {
+  text-align: center;
+  margin: 6px 0 10px;
+  color: var(--text);
+  font-size: 1.1rem;
+}
+
+/* table layout */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 5px 5px;
+  text-align: left;
+  vertical-align: middle;
+  background: var(--cell);
+  color: var(--text);
+  word-break: break-word;
+  font-size: 0.86rem;
+}
+
+/* tighten header inputs */
+thead input, thead select, .sort-container input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: var(--text);
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+/* specifically ensure filter input follows dark theme */
+.sort-container input {
+  background: var(--control-bg);
+  color: var(--text);
+  border: 1px solid var(--control-border);
+}
+
+/* placeholder color adjustments for dark mode */
+.sort-container input::placeholder,
+thead input::placeholder {
+  color: rgba(0,0,0,0.45);
+}
+html.dark .sort-container input::placeholder,
+html.dark thead input::placeholder {
+  color: rgba(255,255,255,0.45);
+}
+
+/* ----------------------------
+   TOTALS (anchored bottom-right of card)
+   ---------------------------- */
+.table-wrapper .card-totals {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  text-align: right;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--text);
+}
+.table-wrapper p { margin: 0; }
+
+/* action column inline buttons */
+.table-wrapper td:last-child {
+  white-space: nowrap;
+  vertical-align: middle;
+  padding-right: 12px;
+  width: 1px;
+}
+.table-wrapper td button {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 4px 4px 4px 0;
+}
+
+/* ----------------------------
+   THEME SWITCH (FIXED ALIGNMENT)
+   ---------------------------- */
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+}
+.theme-switch .track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 92px;
+  height: 42px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--track-bg);
+  border: 1px solid var(--track-border);
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  transition: background var(--transition), border-color var(--transition);
+}
+.theme-switch .icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  flex: 0 0 20px;
+}
+.theme-switch .knob {
+  position: absolute;
+  top: 48%;
+  left: 8px;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: var(--knob-bg);
+  border: 2px solid var(--knob-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--knob-text);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+  transform: translateY(-50%);
+  transition: transform 260ms cubic-bezier(.25,.9,.3,1.2), background var(--transition), border var(--transition), color var(--transition);
+}
+.theme-switch .knob svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+.theme-switch .knob-sun { opacity: 1; transform: scale(1); transition: opacity 160ms, transform 160ms; }
+.theme-switch .knob-moon { opacity: 0; transform: scale(.85); transition: opacity 160ms, transform 160ms; }
+
+.theme-switch.on .knob {
+  transform: translateY(-50%) translateX(41px);
+}
+.theme-switch.on .knob-sun { opacity: 0; transform: scale(.85); }
+.theme-switch.on .knob-moon { opacity: 1; transform: scale(1); }
+
+.theme-switch .knob svg path,
+.theme-switch .knob svg circle {
+  stroke: currentColor;
+  fill: currentColor;
+}
+.theme-switch:hover .track { filter: brightness(0.98); }
+.theme-switch:focus-visible .track { box-shadow: 0 0 0 4px rgba(246,158,36,0.14); outline: none; }
+
+@media (max-width:900px){
+  .theme-switch .track{ width:70px; height:36px; padding:4px; }
+  .theme-switch .knob{ width:20px; height:20px; left:4px; transform:translateY(-50%); }
+  .theme-switch.on .knob{ transform:translateY(-50%) translateX(34px); }
+}
+
+/* ----------------------------
+   RESPONSIVE LAYOUT
+   ---------------------------- */
+@media (max-width: 700px) {
+  .tables-container { flex-direction: column; align-items: center; gap: 12px; }
+  .table-wrapper { max-width: 92%; padding-bottom: 68px; }
+  .main-heading { font-size: 1.7rem; margin-top: 8px; }
+  .add-btn, .edit-btn, .delete-btn { font-size: 0.85rem; padding: 6px 8px; }
+
+  .top-row { flex-direction: column; align-items: stretch; }
+  .top-left { width: 100%; justify-content: flex-start; margin-bottom: 8px; }
+  .top-right {
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .month-row { margin-top: 8px; justify-content: flex-start; }
+  .month-selector { width: 70%; justify-content: flex-start; }
+  .month-input { flex: 1 1 auto; min-width: 0; }
+}
+
+@media (max-width: 420px) {
+  .top-right { flex-direction: column; align-items: flex-end; }
+  .theme-switch { transform: translateY(0); }
+}
+/* Compact mobile layout */
+.mobile-only { display: none; }
+
+@media (max-width: 720px) {
+  .mobile-only { display: inline-flex; }
+
+  .month-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .month-selector {
+    flex: 1;
+  }
+}
+
+/* ----------------------------
+   Extra small fallback
+   ---------------------------- */
+@media (max-width: 520px) {
+  .top-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .tables-container { gap: 8px; }
+  .table-wrapper { padding-bottom: 80px; }
+  .table-wrapper td:last-child { white-space: normal; } /* allow wrap on very small screens */
+}
+
+/* ----------------------------
+   STAT REVIEWER SECTION
+   ---------------------------- */
+.stat-reviewer {
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 20px;
+  padding: 20px;
+  background: var(--card);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  color: var(--text);
+}
+.stat-reviewer h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  color: var(--text);
+}
+.chart-container {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.pie-chart, .bar-chart {
+  flex: 1;
+  min-width: 300px;
+  background: var(--cell);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+.pie-chart h3, .bar-chart h3 {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+/* Responsive adjustments */
+@media (max-width: 700px) {
+  .chart-container { flex-direction: column; gap: 15px; }
+  .stat-reviewer { padding: 15px; margin-top: 15px; }
+  .pie-chart, .bar-chart { min-width: 100%; }
+}

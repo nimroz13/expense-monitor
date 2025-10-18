@@ -1,0 +1,46 @@
+/* App.css — cleaned. Most layout and color rules moved to index.css.
+   Keep only small utilities here so index.css controls the main look. */
+
+/* root container (simple, non-conflicting) */
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Logo utility (kept because it's unrelated to page layout) */
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #6fbaf4aa);
+}
+
+/* Small card utility for other components */
+.card {
+  padding: 1rem;
+}
+
+/* Reduced-motion animation utility (non-critical) */
+@keyframes logo-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+/* Small helper */
+.read-the-docs {
+  color: #888;
+}
+
+/* End of App.css - main styles are in index.css */
