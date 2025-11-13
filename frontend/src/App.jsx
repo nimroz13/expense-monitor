@@ -6,8 +6,13 @@ import "jspdf-autotable";
 import "./index.css";
 import StatReviewer from "./StatReviewer.jsx";
 import html2canvas from "html2canvas";
+import Auth from "./components/Auth.jsx";
 
 function App() {
+  // Authentication state - MUST BE FIRST
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [userEmail, setUserEmail] = useState(localStorage.getItem('userEmail'));
+
   // THEME: get initial value (localStorage or system preference)
   const getInitialTheme = () => {
     try {
@@ -39,59 +44,6 @@ function App() {
   const [editingExpenseAmount, setEditingExpenseAmount] = useState("");
   const [editingExpenseCategory, setEditingExpenseCategory] = useState("");
 
-  // Edit income handlers
-  const startEditIncome = (inc) => {
-    setEditingIncomeId(inc.id);
-    setEditingIncomeAmount(inc.amount);
-    setEditingIncomeCategory(inc.category);
-  };
-  const saveEditIncome = () => {
-    setMonthlyIncomes((prev) => ({
-      ...prev,
-      [selectedMonth]: (prev[selectedMonth] || []).map((inc) =>
-        inc.id === editingIncomeId
-          ? { ...inc, amount: parseFloat(editingIncomeAmount), category: editingIncomeCategory }
-          : inc
-      ),
-    }));
-    setEditingIncomeId(null);
-    setEditingIncomeAmount("");
-    setEditingIncomeCategory("");
-  };
-  const cancelEditIncome = () => {
-    setEditingIncomeId(null);
-    setEditingIncomeAmount("");
-    setEditingIncomeCategory("");
-  };
-
-  // Edit expense handlers
-  const startEditExpense = (exp) => {
-    setEditingExpenseId(exp.id);
-    setEditingExpenseName(exp.name);
-    setEditingExpenseAmount(exp.amount);
-    setEditingExpenseCategory(exp.category);
-  };
-  const saveEditExpense = () => {
-    setMonthlyExpenses((prev) => ({
-      ...prev,
-      [selectedMonth]: (prev[selectedMonth] || []).map((exp) =>
-        exp.id === editingExpenseId
-          ? { ...exp, name: editingExpenseName, amount: parseFloat(editingExpenseAmount), category: editingExpenseCategory }
-          : exp
-      ),
-    }));
-    setEditingExpenseId(null);
-    setEditingExpenseName("");
-    setEditingExpenseAmount("");
-    setEditingExpenseCategory("");
-  };
-  const cancelEditExpense = () => {
-    setEditingExpenseId(null);
-    setEditingExpenseName("");
-    setEditingExpenseAmount("");
-    setEditingExpenseCategory("");
-  };
-
   // Currency setup
   const getInitialCurrency = () => {
     const stored = localStorage.getItem("selectedCurrency");
@@ -104,9 +56,18 @@ function App() {
   });
 
   const [exchangeRates, setExchangeRates] = useState({});
-  const [baseCurrency, setBaseCurrency] = useState("INR");
+  const [monthlyIncomes, setMonthlyIncomes] = useState({});
+  const [monthlyExpenses, setMonthlyExpenses] = useState({});
 
-  // Fetch exchange rates (live from API with fallback and periodic updates)
+  const [incomeAmount, setIncomeAmount] = useState("");
+  const [incomeCategory, setIncomeCategory] = useState("");
+  const [expenseName, setExpenseName] = useState("");
+  const [expenseAmount, setExpenseAmount] = useState("");
+  const [expenseCategory, setExpenseCategory] = useState("");
+  const [sortCategory, setSortCategory] = useState("");
+  const [view, setView] = useState('main');
+
+  // Fetch exchange rates
   useEffect(() => {
     const fetchRates = () => {
       fetch("https://api.exchangerate.host/latest?base=INR")
@@ -117,7 +78,6 @@ function App() {
         .catch((err) => console.error("Currency API error:", err));
     };
 
-    // Set fallback rates initially
     setExchangeRates({
       USD: 0.012,
       EUR: 0.011,
@@ -126,76 +86,213 @@ function App() {
       CAD: 0.016,
     });
 
-    // Fetch immediately
     fetchRates();
-
-    // Fetch every hour (3600000 ms)
     const interval = setInterval(fetchRates, 3600000);
-
-    return () => clearInterval(interval); // Cleanup on unmount
+    return () => clearInterval(interval);
   }, []);
 
-  // Income and expense initialization
-  const getInitialMonthlyIncomes = () => {
-    const stored = localStorage.getItem("monthlyIncomes");
-    if (stored) return JSON.parse(stored);
-    return {
-      [selectedMonth]: [
-        { id: 1, amount: 5000, category: "Salary", currency: "₹" },
-        { id: 2, amount: 200, category: "Freelance", currency: "₹" },
-      ],
+  // API functions
+  const API_BASE = '/api';
+
+  const authFetch = async (url, options = {}) => {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      ...options.headers,
     };
+    
+    try {
+      const response = await fetch(url, { ...options, headers });
+      
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Non-JSON response from:', url);
+        throw new Error('Server returned invalid response. Make sure backend is running on port 5000.');
+      }
+      
+      if (response.status === 401) {
+        handleLogout();
+        throw new Error('Session expired');
+      }
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Request failed');
+      }
+      
+      return response;
+    } catch (error) {
+      if (error.message.includes('Failed to fetch')) {
+        throw new Error('Cannot connect to server. Make sure backend is running on port 5000.');
+      }
+      throw error;
+    }
   };
 
-  const getInitialMonthlyExpenses = () => {
-    const stored = localStorage.getItem("monthlyExpenses");
-    if (stored) return JSON.parse(stored);
-    return {
-      [selectedMonth]: [
-        { id: 1, name: "Groceries", amount: 1500, category: "Food", currency: "₹" },
-        { id: 2, name: "Rent", amount: 2500, category: "Housing", currency: "₹" },
-      ],
-    };
+  const fetchIncomes = async (month) => {
+    if (!token) return [];
+    try {
+      const res = await authFetch(`${API_BASE}/incomes/${month}`);
+      return res.json();
+    } catch (error) {
+      console.error('Failed to fetch incomes:', error);
+      return [];
+    }
   };
 
-  const [monthlyIncomes, setMonthlyIncomes] = useState(getInitialMonthlyIncomes);
-  const [monthlyExpenses, setMonthlyExpenses] = useState(getInitialMonthlyExpenses);
+  const addIncomeAPI = async (month, income) => {
+    const res = await authFetch(`${API_BASE}/incomes/${month}`, {
+      method: 'POST',
+      body: JSON.stringify(income),
+    });
+    return res.json();
+  };
 
-  const [incomeAmount, setIncomeAmount] = useState("");
-  const [incomeCategory, setIncomeCategory] = useState("");
-  const [expenseName, setExpenseName] = useState("");
-  const [expenseAmount, setExpenseAmount] = useState("");
-  const [expenseCategory, setExpenseCategory] = useState("");
-  const [sortCategory, setSortCategory] = useState("");
+  const updateIncomeAPI = async (month, id, income) => {
+    const res = await authFetch(`${API_BASE}/incomes/${month}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(income),
+    });
+    return res.json();
+  };
 
-  // Local storage sync
-  useEffect(() => {
+  const deleteIncomeAPI = async (month, id) => {
+    await authFetch(`${API_BASE}/incomes/${month}/${id}`, { method: 'DELETE' });
+  };
+
+  const fetchExpenses = async (month) => {
+    if (!token) return [];
     try {
-      localStorage.setItem("monthlyIncomes", JSON.stringify(monthlyIncomes));
-    } catch {}
-  }, [monthlyIncomes]);
+      const res = await authFetch(`${API_BASE}/expenses/${month}`);
+      return res.json();
+    } catch (error) {
+      console.error('Failed to fetch expenses:', error);
+      return [];
+    }
+  };
 
+  const addExpenseAPI = async (month, expense) => {
+    const res = await authFetch(`${API_BASE}/expenses/${month}`, {
+      method: 'POST',
+      body: JSON.stringify(expense),
+    });
+    return res.json();
+  };
+
+  const updateExpenseAPI = async (month, id, expense) => {
+    const res = await authFetch(`${API_BASE}/expenses/${month}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(expense),
+    });
+    return res.json();
+  };
+
+  const deleteExpenseAPI = async (month, id) => {
+    await authFetch(`${API_BASE}/expenses/${month}/${id}`, { method: 'DELETE' });
+  };
+
+  // Fetch data on mount and month change
   useEffect(() => {
+    if (!token) return;
+    
+    const loadData = async () => {
+      try {
+        const incomes = await fetchIncomes(selectedMonth);
+        const expenses = await fetchExpenses(selectedMonth);
+        setMonthlyIncomes(prev => ({ ...prev, [selectedMonth]: incomes }));
+        setMonthlyExpenses(prev => ({ ...prev, [selectedMonth]: expenses }));
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      }
+    };
+    loadData();
+  }, [selectedMonth, token]);
+
+  // Auth handlers
+  const handleLogin = (newToken) => {
+    setToken(newToken);
+    setUserEmail(localStorage.getItem('userEmail'));
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userEmail');
+    setToken(null);
+    setUserEmail(null);
+    setMonthlyIncomes({});
+    setMonthlyExpenses({});
+  };
+
+  // Edit income handlers
+  const startEditIncome = (inc) => {
+    setEditingIncomeId(inc._id);
+    setEditingIncomeAmount(inc.amount);
+    setEditingIncomeCategory(inc.category);
+  };
+
+  const saveEditIncome = async () => {
     try {
-      localStorage.setItem("monthlyExpenses", JSON.stringify(monthlyExpenses));
-    } catch {}
-  }, [monthlyExpenses]);
+      const updated = await updateIncomeAPI(selectedMonth, editingIncomeId, {
+        amount: parseFloat(editingIncomeAmount),
+        category: editingIncomeCategory,
+      });
+      setMonthlyIncomes(prev => ({
+        ...prev,
+        [selectedMonth]: (prev[selectedMonth] || []).map(inc =>
+          inc._id === editingIncomeId ? updated : inc
+        ),
+      }));
+      setEditingIncomeId(null);
+      setEditingIncomeAmount("");
+      setEditingIncomeCategory("");
+    } catch (error) {
+      console.error('Failed to update income:', error);
+    }
+  };
 
-  const incomes = monthlyIncomes[selectedMonth] || [];
-  const expenses = monthlyExpenses[selectedMonth] || [];
-  const sortedExpenses = sortCategory
-    ? expenses.filter((exp) =>
-        exp.category.toLowerCase().includes(sortCategory.toLowerCase())
-      )
-    : expenses;
+  const cancelEditIncome = () => {
+    setEditingIncomeId(null);
+    setEditingIncomeAmount("");
+    setEditingIncomeCategory("");
+  };
 
-  const totalIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0);
-  const totalExpense = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const remaining = totalIncome - totalExpense;
+  // Edit expense handlers
+  const startEditExpense = (exp) => {
+    setEditingExpenseId(exp._id);
+    setEditingExpenseName(exp.name);
+    setEditingExpenseAmount(exp.amount);
+    setEditingExpenseCategory(exp.category);
+  };
 
-  // Currency Conversion Logic
-  const currencyMap = { "₹": "INR", "$": "USD", "€": "EUR", "£": "GBP", "¥": "JPY", "C$": "CAD" };
-  const rate = exchangeRates[currencyMap[currency]] || 1;
+  const saveEditExpense = async () => {
+    try {
+      const updated = await updateExpenseAPI(selectedMonth, editingExpenseId, {
+        name: editingExpenseName,
+        amount: parseFloat(editingExpenseAmount),
+        category: editingExpenseCategory,
+      });
+      setMonthlyExpenses(prev => ({
+        ...prev,
+        [selectedMonth]: (prev[selectedMonth] || []).map(exp =>
+          exp._id === editingExpenseId ? updated : exp
+        ),
+      }));
+      setEditingExpenseId(null);
+      setEditingExpenseName("");
+      setEditingExpenseAmount("");
+      setEditingExpenseCategory("");
+    } catch (error) {
+      console.error('Failed to update expense:', error);
+    }
+  };
+
+  const cancelEditExpense = () => {
+    setEditingExpenseId(null);
+    setEditingExpenseName("");
+    setEditingExpenseAmount("");
+    setEditingExpenseCategory("");
+  };
 
   const handleCurrencyChange = (newSymbol) => {
     setCurrency(newSymbol);
@@ -205,57 +302,71 @@ function App() {
   };
 
   // Income CRUD
-  const addIncome = () => {
+  const addIncome = async () => {
     if (!incomeAmount || !incomeCategory) return;
-    const newIncome = {
-      id: Date.now(),
-      amount: parseFloat(incomeAmount),
-      category: incomeCategory,
-      currency: currency,
-    };
-    setMonthlyIncomes((prev) => ({
-      ...prev,
-      [selectedMonth]: [...(prev[selectedMonth] || []), newIncome],
-    }));
-    setIncomeAmount("");
-    setIncomeCategory("");
+    try {
+      const newIncome = {
+        amount: parseFloat(incomeAmount),
+        category: incomeCategory,
+        currency: currency,
+      };
+      const added = await addIncomeAPI(selectedMonth, newIncome);
+      setMonthlyIncomes(prev => ({
+        ...prev,
+        [selectedMonth]: [...(prev[selectedMonth] || []), added],
+      }));
+      setIncomeAmount("");
+      setIncomeCategory("");
+    } catch (error) {
+      console.error('Failed to add income:', error);
+    }
   };
 
-  const deleteIncome = (id) => {
-    setMonthlyIncomes((prev) => ({
-      ...prev,
-      [selectedMonth]: (prev[selectedMonth] || []).filter(
-        (inc) => inc.id !== id
-      ),
-    }));
+  const deleteIncome = async (id) => {
+    try {
+      await deleteIncomeAPI(selectedMonth, id);
+      setMonthlyIncomes(prev => ({
+        ...prev,
+        [selectedMonth]: (prev[selectedMonth] || []).filter(inc => inc._id !== id),
+      }));
+    } catch (error) {
+      console.error('Failed to delete income:', error);
+    }
   };
 
   // Expense CRUD
-  const addExpense = () => {
+  const addExpense = async () => {
     if (!expenseName || !expenseAmount || !expenseCategory) return;
-    const newExpense = {
-      id: Date.now(),
-      name: expenseName,
-      amount: parseFloat(expenseAmount),
-      category: expenseCategory,
-      currency: currency,
-    };
-    setMonthlyExpenses((prev) => ({
-      ...prev,
-      [selectedMonth]: [...(prev[selectedMonth] || []), newExpense],
-    }));
-    setExpenseName("");
-    setExpenseAmount("");
-    setExpenseCategory("");
+    try {
+      const newExpense = {
+        name: expenseName,
+        amount: parseFloat(expenseAmount),
+        category: expenseCategory,
+        currency: currency,
+      };
+      const added = await addExpenseAPI(selectedMonth, newExpense);
+      setMonthlyExpenses(prev => ({
+        ...prev,
+        [selectedMonth]: [...(prev[selectedMonth] || []), added],
+      }));
+      setExpenseName("");
+      setExpenseAmount("");
+      setExpenseCategory("");
+    } catch (error) {
+      console.error('Failed to add expense:', error);
+    }
   };
 
-  const deleteExpense = (id) => {
-    setMonthlyExpenses((prev) => ({
-      ...prev,
-      [selectedMonth]: (prev[selectedMonth] || []).filter(
-        (exp) => exp.id !== id
-      ),
-    }));
+  const deleteExpense = async (id) => {
+    try {
+      await deleteExpenseAPI(selectedMonth, id);
+      setMonthlyExpenses(prev => ({
+        ...prev,
+        [selectedMonth]: (prev[selectedMonth] || []).filter(exp => exp._id !== id),
+      }));
+    } catch (error) {
+      console.error('Failed to delete expense:', error);
+    }
   };
 
   const changeMonth = (delta) => {
@@ -272,7 +383,23 @@ function App() {
     setSelectedMonth(`${newYear}-${String(newMonth).padStart(2, "0")}`);
   };
 
-  // Download PDF with tables and charts
+  // Calculate totals
+  const incomes = monthlyIncomes[selectedMonth] || [];
+  const expenses = monthlyExpenses[selectedMonth] || [];
+  const sortedExpenses = sortCategory
+    ? expenses.filter((exp) =>
+        exp.category.toLowerCase().includes(sortCategory.toLowerCase())
+      )
+    : expenses;
+
+  const totalIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0);
+  const totalExpense = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const remaining = totalIncome - totalExpense;
+
+  const currencyMap = { "₹": "INR", "$": "USD", "€": "EUR", "£": "GBP", "¥": "JPY", "C$": "CAD" };
+  const rate = exchangeRates[currencyMap[currency]] || 1;
+
+  // Download PDF function
   const downloadPDF = async () => {
     // Temporarily render charts off-screen
     const tempDiv = document.createElement('div');
@@ -386,28 +513,22 @@ function App() {
     });
   });
 
-  const [view, setView] = useState('main'); // 'main' or 'stats'
+  // NOW check authentication - AFTER all hooks
+  if (!token) {
+    return <Auth onLogin={handleLogin} />;
+  }
 
+  // Main app render
   return (
     <div className="app-container">
       {/* Centered heading */}
       <h1 className="main-heading">💰 Monthly Budget Tracker</h1>
 
       <div className="top-controls">
-        {/* Top row: currency (left) and swapped download + theme (right) */}
-        <div
-          className="top-row"
-          style={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: "12px",
-          }}
-        >
+        <div className="top-row" style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <label>Currency:</label>
-            <select value={currency} onChange={(e) => handleCurrencyChange(e.target.value) || handleCurrencyChange(e.target.value)}>
+            <select value={currency} onChange={(e) => handleCurrencyChange(e.target.value)}>
               <option value="₹">₹ - INR</option>
               <option value="$">$ - USD</option>
               <option value="€">€ - EUR</option>
@@ -417,12 +538,15 @@ function App() {
             </select>
           </div>
 
-          {/* Right side: DOWNLOAD first, THEME second (swapped) */}
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            {/* User email display */}
+            <span style={{ fontSize: "14px" }}>{userEmail}</span>
+
+            {/* Logout button */}
+            <button className="add-btn" onClick={handleLogout} style={{ padding: "8px 12px" }}>Logout</button>
+
             {/* Desktop-only full Download button (shown under top-right in desktop via CSS) */}
-            <button className="add-btn desktop-only" onClick={downloadPDF} aria-label="Download PDF">
-              Download PDF
-            </button>
+            <button className="add-btn desktop-only" onClick={downloadPDF}>Download PDF</button>
 
             {/* Day/Night pill toggle */}
             <button
@@ -463,30 +587,16 @@ function App() {
 
         {/* Month selector row (below top row) */}
         <div style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "8px", justifyContent: "flex-start", width: "100%" }}>
-          <div className="month-selector" style={{ marginBottom: "0" }}>
-            <button className="month-arrow-btn" onClick={() => changeMonth(-1)} style={{ marginRight: '8px' }}>◀</button>
-
-            <input
-              type="month"
-              className="month-input"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              aria-label="Select month"
-              style={{ marginRight: '8px' }}
-            />
-
-            <button className="month-arrow-btn" onClick={() => changeMonth(1)} style={{ marginLeft: '8px' }}>▶</button>
+          <div className="month-selector">
+            <button className="month-arrow-btn" onClick={() => changeMonth(-1)}>◀</button>
+            <input type="month" className="month-input" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} />
+            <button className="month-arrow-btn" onClick={() => changeMonth(1)}>▶</button>
           </div>
-
-          {/* NOTE: mobile-only download icon removed as requested */}
         </div>
       </div>
 
-      {/* View Stats button (below top-controls, above tables) */}
       {view === 'main' && (
-        <button className="view-stats-btn" onClick={() => setView('stats')} aria-label="View Statistics">
-          📊 View Stats
-        </button>
+        <button className="view-stats-btn" onClick={() => setView('stats')}>📊 View Stats</button>
       )}
 
       {view === 'main' ? (
