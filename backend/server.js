@@ -82,21 +82,32 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 
     // Send email with reset code
     try {
+      console.log('Attempting to send email to:', email);
+      console.log('Email config:', { 
+        user: process.env.EMAIL_USER, 
+        hasPassword: !!process.env.EMAIL_PASS 
+      });
+      
       await sendResetEmail(email, resetToken);
+      
+      console.log('Email sent successfully!');
       res.json({ 
         message: 'Reset code sent to your email',
         email: user.email 
       });
     } catch (emailError) {
       // If email fails, still return the code for development
-      console.error('Email sending failed, returning code for testing:', emailError);
+      console.error('Email sending failed:', emailError.message);
+      console.error('Full error:', emailError);
       res.json({ 
         message: 'Email service unavailable. Reset code (for testing)',
         resetToken, // Fallback for development
-        email: user.email 
+        email: user.email,
+        error: emailError.message // Add error message for debugging
       });
     }
   } catch (error) {
+    console.error('Reset request error:', error);
     res.status(500).json({ error: 'Failed to process reset request' });
   }
 });

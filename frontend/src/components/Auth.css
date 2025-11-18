@@ -51,6 +51,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
 }
 
 .auth-card input {
@@ -58,6 +59,8 @@
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .dark .auth-card input {
@@ -151,4 +154,51 @@
 
 .dark .reset-info {
   color: #9ca3af;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 45px;
+  box-sizing: border-box;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: color 0.2s;
+  z-index: 1;
+}
+
+.password-toggle:hover {
+  color: #667eea;
+}
+
+.dark .password-toggle {
+  color: #9ca3af;
+}
+
+.dark .password-toggle:hover {
+  color: #a78bfa;
+}
+
+.password-toggle svg {
+  display: block;
 }
