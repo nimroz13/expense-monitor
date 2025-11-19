@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Auth.css';
 
 function Auth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [resetStep, setResetStep] = useState(1); // 1: email, 2: code, 3: new password
+  const [resetStep, setResetStep] = useState(1);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [resetCode, setResetCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [generatedCode, setGeneratedCode] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,10 +17,176 @@ function Auth({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
+  // Animation States
+  const [focusField, setFocusField] = useState(null); // 'email' | 'password' | null
+  const [animationState, setAnimationState] = useState('idle'); // idle, shatter, success
+  const [isTypingPassword, setIsTypingPassword] = useState(false);
+
+  // Face tracking state (eyes + mouth together)
+  const [faceRotations, setFaceRotations] = useState({
+    purple: 0,
+    black: 0,
+    yellow: 0,
+    orange: 0
+  });
+
+  // Pupil tracking state
+  const [pupilPositions, setPupilPositions] = useState({
+    purple: { x: 0, y: 0 },
+    black: { x: 0, y: 0 },
+    yellow: { x: 0, y: 0 },
+    orange: { x: 0, y: 0 }
+  });
+
+  // Add state for eye positions (the white eyeballs)
+  const [eyePositions, setEyePositions] = useState({
+    purple: { x: 0, y: 0 },
+    black: { x: 0, y: 0 },
+    yellow: { x: 0, y: 0 },
+    orange: { x: 0, y: 0 }
+  });
+
+  // Add state for mouth positions
+  const [mouthPositions, setMouthPositions] = useState({
+    purple: { x: 0, y: 0 },
+    black: { x: 0, y: 0 },
+    yellow: { x: 0, y: 0 },
+    orange: { x: 0, y: 0 }
+  });
+
+  // Track mouse movement for face following
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      // Stop tracking if password is shown (peek) or focused on password or shattering
+      if (focusField === 'password' || animationState === 'shatter' || showPassword) return;
+
+      const figures = {
+        purple: document.querySelector('.figure-purple'),
+        black: document.querySelector('.figure-black'),
+        yellow: document.querySelector('.figure-yellow'),
+        orange: document.querySelector('.figure-orange')
+      };
+
+      const newPositions = {};
+      const newEyePositions = {};
+      const newMouthPositions = {};
+      const newFaceRotations = {};
+
+      Object.keys(figures).forEach(key => {
+        const figure = figures[key];
+        if (!figure) return;
+
+        const face = figure.querySelector('.face');
+        if (!face) return;
+
+        const rect = face.getBoundingClientRect();
+        const faceCenterX = rect.left + rect.width / 2;
+        const faceCenterY = rect.top + rect.height / 2;
+
+        const deltaX = e.clientX - faceCenterX;
+        const deltaY = e.clientY - faceCenterY;
+        const angle = Math.atan2(deltaY, deltaX);
+        
+        // Pupil movement
+        const maxDistance = key === 'black' ? 5 : 4; // Increased from 3/2
+        const pupilX = Math.cos(angle) * maxDistance;
+        const pupilY = Math.sin(angle) * maxDistance;
+        newPositions[key] = { x: pupilX, y: pupilY };
+        
+        // Eye movement (eyeballs moving along face)
+        const eyeMaxDist = 12; // Increased from 6
+        const eyeX = Math.cos(angle) * eyeMaxDist;
+        const eyeY = Math.sin(angle) * eyeMaxDist;
+        newEyePositions[key] = { x: eyeX, y: eyeY };
+
+        // Mouth movement
+        const mouthMaxDist = 8; // Increased from 3
+        const mouthX = Math.cos(angle) * mouthMaxDist;
+        const mouthY = Math.sin(angle) * mouthMaxDist;
+        newMouthPositions[key] = { x: mouthX, y: mouthY };
+        
+        // Calculate face rotation (convert radians to degrees)
+        const rotationDegrees = (angle * 180 / Math.PI) * 0.05; // Increased from 0.03
+        newFaceRotations[key] = rotationDegrees;
+      });
+
+      setPupilPositions(newPositions);
+      setEyePositions(newEyePositions);
+      setMouthPositions(newMouthPositions);
+      setFaceRotations(newFaceRotations);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [focusField, animationState, showPassword]);
+
+  const BackgroundParticles = () => (
+    <div className="background-particles">
+      <div className="particle p1"></div>
+      <div className="particle p2"></div>
+      <div className="particle p3"></div>
+      <div className="particle p4"></div>
+      <div className="particle p5"></div>
+    </div>
+  );
+
+  // Mascot Component
+  const MascotCharacter = ({ state }) => {
+    return (
+      <div className={`mascot-container ${state}`}>
+        <div className="mascot-body">
+          <div className="mascot-head">
+            <div className="mascot-hair"></div>
+            <div className="mascot-face">
+              <div className="mascot-eyes">
+                <div className="eye left">
+                  <div className="pupil"></div>
+                  <div className="eyelid"></div>
+                </div>
+                <div className="eye right">
+                  <div className="pupil"></div>
+                  <div className="eyelid"></div>
+                </div>
+              </div>
+              <div className="mascot-mouth"></div>
+              <div className="mascot-cheeks">
+                <div className="cheek left"></div>
+                <div className="cheek right"></div>
+              </div>
+            </div>
+          </div>
+          <div className="mascot-torso">
+            <div className="mascot-arm left">
+              <div className="hand"></div>
+            </div>
+            <div className="mascot-arm right">
+              <div className="hand"></div>
+            </div>
+          </div>
+        </div>
+        <div className="mascot-shadow"></div>
+        {state === 'success' && (
+          <div className="confetti-burst">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        )}
+        {state === 'error' && (
+          <div className="tear-drop"></div>
+        )}
+      </div>
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    // Trigger Shatter Animation on Login Click
+    setAnimationState('shatter');
+    
+    // Delay actual API call slightly to let animation start
+    await new Promise(r => setTimeout(r, 800)); 
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
@@ -31,7 +196,6 @@ function Auth({ onLogin }) {
         body: JSON.stringify({ email, password }),
       });
 
-      // Check if response is JSON
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         throw new Error('Cannot connect to server. Make sure backend is running on port 5000.');
@@ -40,13 +204,20 @@ function Auth({ onLogin }) {
       const data = await res.json();
 
       if (!res.ok) {
+        setAnimationState('idle'); // Reset animation on error
         throw new Error(data.error || 'Authentication failed');
       }
 
+      setAnimationState('success'); // Optional success state if not shattering
       localStorage.setItem('token', data.token);
       localStorage.setItem('userEmail', data.email);
-      onLogin(data.token);
+      
+      setTimeout(() => {
+        onLogin(data.token);
+      }, 500);
+      
     } catch (err) {
+      setAnimationState('idle'); // Reset animation on error
       setError(err.message);
     } finally {
       setLoading(false);
@@ -153,149 +324,413 @@ function Auth({ onLogin }) {
     setSuccess('');
   };
 
+  // Handle password focus/blur logic for mascot
+  const handlePasswordFocus = () => {
+    if (showPassword) {
+      setMascotState('peek');
+    } else {
+      setMascotState('focus-password');
+    }
+  };
+
+  const handlePasswordBlur = () => {
+    if (mascotState !== 'error' && mascotState !== 'success') {
+      setMascotState('idle');
+    }
+  };
+
+  const togglePasswordVisibility = () => {
+    const newState = !showPassword;
+    setShowPassword(newState);
+    // If currently focused on password, update mascot state immediately
+    if (mascotState === 'focus-password' || mascotState === 'peek') {
+      setMascotState(newState ? 'peek' : 'focus-password');
+    }
+  };
+
+  // Helper to determine current animation class for container
+  const getFigureClass = () => {
+    if (animationState === 'shatter') return 'shatter';
+    if (animationState === 'success') return 'success';
+    if (showPassword) return 'peek';
+    if (focusField === 'password') return 'shy';
+    if (focusField === 'email') return 'curious';
+    return 'idle';
+  };
+
+  // Helper to combine eye translation with animation scales
+  const getEyeStyle = (key) => {
+    const figureClass = getFigureClass();
+
+    // Look away when showing password (peek state)
+    if (figureClass === 'peek') {
+      return {
+        transform: 'translate(-12px, -6px)', // Look up-left
+        transition: 'transform 0.2s ease-out'
+      };
+    }
+
+    const { x, y } = eyePositions[key];
+    let scale = '';
+
+    if (figureClass === 'curious' || figureClass === 'shy') {
+       if (key === 'purple') scale = 'scale(1.1, 0.85)';
+       else if (key === 'black') scale = 'scale(1.15, 0.8)';
+       else if (key === 'yellow') scale = 'scale(1.12, 0.82)';
+       else if (key === 'orange') scale = 'scale(1.08, 0.88)';
+    } else if (figureClass === 'peek') {
+       if (key === 'purple') scale = 'scale(1.08)';
+       else if (key === 'black') scale = 'scale(1.06)';
+       else if (key === 'yellow') scale = 'scale(1.05)';
+       else if (key === 'orange') scale = 'scale(1.04)';
+    }
+    
+    return {
+      transform: `translate(${x}px, ${y}px) ${scale}`,
+      transition: 'transform 0.1s ease-out'
+    };
+  };
+
+  // Helper to combine mouth translation with animation scales
+  const getMouthStyle = (key) => {
+    const { x, y } = mouthPositions[key];
+    let scale = '';
+    const figureClass = getFigureClass();
+
+    if (figureClass === 'peek') {
+       if (key === 'orange' || key === 'yellow') {
+         return {}; // Let CSS handle whistling animation
+       }
+       return { transform: 'translate(0,0)' };
+    }
+
+    if (figureClass === 'curious') {
+       if (key === 'purple') scale = 'scaleX(1) scaleY(0.8)';
+       else if (key === 'yellow') scale = 'scaleX(0.8) scaleY(0.7)';
+       else if (key === 'orange') scale = 'scaleY(0.9) scaleX(0.95)';
+    } else if (figureClass === 'shy') {
+       if (key === 'purple') scale = 'scaleX(0.7) scaleY(0.6)';
+       else if (key === 'yellow') scale = 'scaleX(0.6) scaleY(0.5)';
+       else if (key === 'orange') scale = 'scaleY(-0.8) scaleX(1.1)';
+    } else if (figureClass === 'peek') {
+       if (key === 'purple') scale = 'scaleY(1.2) scaleX(1.1)';
+       else if (key === 'yellow') scale = 'scaleX(1.15) scaleY(1)';
+       else if (key === 'orange') scale = 'scaleY(1) scaleX(1)';
+    }
+    
+    return {
+      transform: `translate(${x}px, ${y}px) ${scale}`,
+      transition: 'transform 0.1s ease-out'
+    };
+  };
+
+  // Helper for pupil style to look away during peek
+  const getPupilStyle = (key) => {
+    const figureClass = getFigureClass();
+    if (figureClass === 'peek') {
+      return {
+        transform: 'translate(-3px, -1px)', 
+        transition: 'transform 0.2s ease-out'
+      };
+    }
+    const { x, y } = pupilPositions[key];
+    return {
+      transform: `translate(${x}px, ${y}px)`
+    };
+  };
+
+  // Helper for face rotation style
+  const getFaceStyle = (key) => {
+    const figureClass = getFigureClass();
+    // If peeking, let CSS handle the look-away transform by returning empty style
+    if (figureClass === 'peek') {
+      return {}; 
+    }
+    return { 
+      transform: `translateX(-50%) rotate(${faceRotations[key]}deg)` 
+    };
+  };
+
+  // Abstract Figures Component based on the image provided
+  const AbstractFigures = () => (
+    <div className={`figures-group ${getFigureClass()}`}>
+      
+      {/* Purple Rectangle (Back Left) */}
+      <div className="figure figure-purple">
+        <div 
+          className="face" 
+          style={getFaceStyle('purple')}
+        >
+          <div className="eyes">
+            <div className="eye" style={getEyeStyle('purple')}>
+              <div 
+                className="pupil" 
+                style={getPupilStyle('purple')}
+              />
+            </div>
+            <div className="eye" style={getEyeStyle('purple')}>
+              <div 
+                className="pupil" 
+                style={getPupilStyle('purple')}
+              />
+            </div>
+          </div>
+          <div className="mouth" style={getMouthStyle('purple')}></div>
+        </div>
+        <div className="hands-cover"></div>
+      </div>
+
+      {/* Black Tall Rectangle (Middle) */}
+      <div className="figure figure-black">
+        <div 
+          className="face" 
+          style={getFaceStyle('black')}
+        >
+          <div className="eyes">
+            <div className="eye" style={getEyeStyle('black')}>
+              <div 
+                className="pupil" 
+                style={getPupilStyle('black')}
+              />
+            </div>
+            <div className="eye" style={getEyeStyle('black')}>
+              <div 
+                className="pupil" 
+                style={getPupilStyle('black')}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Yellow Shape (Right) */}
+      <div className="figure figure-yellow">
+        <div 
+          className="face" 
+          style={getFaceStyle('yellow')}
+        >
+          <div className="eyes">
+            <div className="eye" style={getEyeStyle('yellow')}>
+              <div 
+                className="pupil" 
+                style={getPupilStyle('yellow')}
+              />
+            </div>
+            <div className="eye" style={getEyeStyle('yellow')}>
+              <div 
+                className="pupil" 
+                style={getPupilStyle('yellow')}
+              />
+            </div>
+          </div>
+          <div className="mouth" style={getMouthStyle('yellow')}></div>
+          {/* Musical notes for whistling */}
+          <div className="music-note note-1">♪</div>
+          <div className="music-note note-2">♫</div>
+        </div>
+      </div>
+
+      {/* Orange Semicircle (Front Left) */}
+      <div className="figure figure-orange">
+        <div 
+          className="face" 
+          style={getFaceStyle('orange')}
+        >
+          <div className="eyes">
+            <div className="eye" style={getEyeStyle('orange')}>
+              <div 
+                className="pupil" 
+                style={getPupilStyle('orange')}
+              />
+            </div>
+            <div className="eye" style={getEyeStyle('orange')}>
+              <div 
+                className="pupil" 
+                style={getPupilStyle('orange')}
+              />
+            </div>
+          </div>
+          <div className="mouth" style={getMouthStyle('orange')}></div>
+        </div>
+      </div>
+
+    </div>
+  );
+
   if (isForgotPassword) {
     return (
-      <div className="auth-container">
-        <div className="auth-card">
-          <h2>💰 Monthly Budget Tracker</h2>
-          <h3>Reset Password</h3>
-          
-          {error && <div className="auth-error">{error}</div>}
-          {success && <div className="auth-success">{success}</div>}
-          
-          <form onSubmit={handleForgotPassword}>
-            {resetStep === 1 && (
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            )}
+      <div className="auth-split-layout">
+        <div className="auth-left-panel">
+          {AbstractFigures()}
+        </div>
+        <div className="auth-right-panel">
+          <div className="auth-card">
+            <div className="card-header">
+              <h2>Reset Password</h2>
+              <p className="subtitle">Follow the steps to recover your account</p>
+            </div>
+            
+            {error && <div className="auth-message error">{error}</div>}
+            {success && <div className="auth-message success">{success}</div>}
+            
+            <form onSubmit={handleForgotPassword}>
+              {resetStep === 1 && (
+                <div className="input-group">
+                  <input
+                    type="email"
+                    id="reset-email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder=" "
+                  />
+                  <label htmlFor="reset-email">Enter your email</label>
+                </div>
+              )}
+              {resetStep === 2 && (
+                <>
+                  <p className="reset-info">Enter the 6-digit code sent to {email}</p>
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      id="reset-code"
+                      value={resetCode}
+                      onChange={(e) => setResetCode(e.target.value)}
+                      required
+                      maxLength="6"
+                      placeholder=" "
+                    />
+                    <label htmlFor="reset-code">6-digit code</label>
+                  </div>
+                </>
+              )}
+              {resetStep === 3 && (
+                <div className="input-group">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    id="new-password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength="6"
+                    placeholder=" "
+                  />
+                  <label htmlFor="new-password">New Password</label>
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+              )}
 
-            {resetStep === 2 && (
-              <>
-                <p className="reset-info">Enter the 6-digit code sent to {email}</p>
-                <input
-                  type="text"
-                  placeholder="Enter 6-digit code"
-                  value={resetCode}
-                  onChange={(e) => setResetCode(e.target.value)}
-                  required
-                  maxLength="6"
-                />
-              </>
-            )}
+              <button type="submit" disabled={loading} className="submit-btn">
+                {loading ? 'Processing...' : 
+                  resetStep === 1 ? 'Send Reset Code' :
+                  resetStep === 2 ? 'Verify Code' :
+                  'Reset Password'}
+              </button>
+            </form>
 
-            {resetStep === 3 && (
-              <div className="password-input-wrapper">
-                <input
-                  type={showNewPassword ? "text" : "password"}
-                  placeholder="Enter new password (min 6 characters)"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  minLength="6"
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  aria-label={showNewPassword ? "Hide password" : "Show password"}
-                >
-                  {showNewPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                      <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46A11.804 11.804 0 0 0 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                    </svg>
-                  )}
-                </button>
-              </div>
-            )}
-
-            <button type="submit" disabled={loading}>
-              {loading ? 'Please wait...' : 
-                resetStep === 1 ? 'Send Reset Code' :
-                resetStep === 2 ? 'Verify Code' :
-                'Reset Password'}
-            </button>
-          </form>
-
-          <p className="auth-toggle">
-            <button type="button" onClick={resetForgotPasswordFlow}>
-              Back to Login
-            </button>
-          </p>
+            <div className="auth-footer">
+              <button type="button" onClick={resetForgotPasswordFlow} className="link-btn">
+                Back to Login
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>💰 Monthly Budget Tracker</h2>
-        <h3>{isLogin ? 'Login' : 'Register'}</h3>
-        
-        {error && <div className="auth-error">{error}</div>}
-        
-        <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <div className="password-input-wrapper">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password (min 6 characters)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength="6"
-            />
-            <button
-              type="button"
-              className="password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                  <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46A11.804 11.804 0 0 0 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                  <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                </svg>
-              )}
-            </button>
+    <div className="auth-split-layout">
+      <div className="auth-left-panel">
+        {AbstractFigures()}
+      </div>
+      
+      <div className="auth-right-panel">
+        <div className="auth-card entrance-animation">
+          <div className="card-header">
+            <h2>{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
+            <p className="subtitle">
+              {isLogin ? 'Enter your details to access your budget' : 'Start tracking your expenses today'}
+            </p>
           </div>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Please wait...' : (isLogin ? 'Login' : 'Register')}
-          </button>
-        </form>
+          
+          {error && <div className="auth-message error">{error}</div>}
+          
+          <form onSubmit={handleSubmit}>
+            <div className="input-group">
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder=" "
+                onFocus={() => setAnimationState('curious')}
+                onBlur={() => setAnimationState('idle')}
+              />
+              <label htmlFor="email">Email Address</label>
+            </div>
 
-        {isLogin && (
-          <p className="forgot-password">
-            <button type="button" onClick={() => setIsForgotPassword(true)}>
-              Forgot Password?
+            <div className="input-group">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setIsTypingPassword(e.target.value.length > 0);
+                }}
+                required
+                minLength="6"
+                placeholder=" "
+                onFocus={() => {
+                  setIsTypingPassword(true);
+                  setAnimationState('shy');
+                }}
+                onBlur={() => {
+                  setIsTypingPassword(false);
+                  setAnimationState('idle');
+                }}
+              />
+              <label htmlFor="password">Password</label>
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => {
+                  setShowPassword(!showPassword);
+                  setAnimationState(showPassword ? 'shy' : 'peek');
+                }}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+
+            <button type="submit" disabled={loading} className="submit-btn">
+              {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Sign Up')}
             </button>
-          </p>
-        )}
+          </form>
 
-        <p className="auth-toggle">
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button type="button" onClick={() => setIsLogin(!isLogin)}>
-            {isLogin ? 'Register' : 'Login'}
-          </button>
-        </p>
+          <div className="auth-footer">
+            {isLogin && (
+              <button type="button" onClick={() => setIsForgotPassword(true)} className="link-btn forgot-link">
+                Forgot Password?
+              </button>
+            )}
+            
+            <div className="toggle-container">
+              <span>{isLogin ? "Don't have an account? " : "Already have an account? "}</span>
+              <button type="button" onClick={() => setIsLogin(!isLogin)} className="link-btn highlight">
+                {isLogin ? 'Register' : 'Login'}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,204 +1,1086 @@
+/* Modern Premium Auth Styles */
+
+/* 1. Background Animation */
 .auth-container {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  /* Smooth pastel gradient */
+  background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+  background-size: 400% 400%;
+  animation: gradientLoop 15s ease infinite;
 }
 
+@keyframes gradientLoop {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 2. Floating Particles (Subtle Background) */
+.background-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  animation: float 20s infinite linear;
+}
+
+.p1 { width: 80px; height: 80px; top: 10%; left: 10%; animation-duration: 25s; }
+.p2 { width: 40px; height: 40px; top: 20%; right: 20%; animation-duration: 18s; animation-delay: -5s; }
+.p3 { width: 60px; height: 60px; bottom: 15%; left: 20%; animation-duration: 22s; animation-delay: -2s; }
+.p4 { width: 30px; height: 30px; bottom: 30%; right: 10%; animation-duration: 15s; animation-delay: -8s; }
+.p5 { width: 100px; height: 100px; top: 40%; left: 50%; opacity: 0.1; animation-duration: 30s; }
+
+@keyframes float {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(30px, -50px) rotate(120deg); }
+  66% { transform: translate(-20px, 20px) rotate(240deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+
+/* 3. Card Entrance Animation */
 .auth-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
+  z-index: 10;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
+.entrance-animation {
+  animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark Mode Support */
 .dark .auth-card {
-  background: #1f2937;
+  background: rgba(31, 41, 55, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
   color: white;
 }
 
-.auth-card h2 {
+/* 4. Typography */
+.card-header {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 32px;
+}
+
+.card-header h2 {
   font-size: 28px;
-}
-
-.auth-card h3 {
-  text-align: center;
-  margin-bottom: 24px;
-  color: #667eea;
-  font-size: 22px;
-}
-
-.dark .auth-card h3 {
-  color: #a78bfa;
-}
-
-.auth-error {
-  background: #fee;
-  color: #c33;
-  padding: 12px;
-  border-radius: 6px;
-  margin-bottom: 16px;
-  text-align: center;
-}
-
-.auth-card form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-}
-
-.auth-card input {
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 16px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.dark .auth-card input {
-  background: #374151;
-  border-color: #4b5563;
-  color: white;
-}
-
-.auth-card button[type="submit"] {
-  padding: 12px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.auth-card button[type="submit"]:hover {
-  background: #5568d3;
-}
-
-.auth-card button[type="submit"]:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-}
-
-.auth-toggle {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.auth-toggle button {
-  background: none;
-  border: none;
-  color: #667eea;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
-}
-
-.dark .auth-toggle button {
-  color: #a78bfa;
-}
-
-.auth-success {
-  background: #d4edda;
-  color: #155724;
-  padding: 12px;
-  border-radius: 6px;
-  margin-bottom: 16px;
-  text-align: center;
-  border: 1px solid #c3e6cb;
-}
-
-.dark .auth-success {
-  background: #1e4620;
-  color: #7fd87f;
-  border-color: #2d5f2f;
-}
-
-.forgot-password {
-  text-align: center;
-  margin-top: 12px;
+  font-weight: 700;
   margin-bottom: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.dark .card-header h2 {
+  background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.forgot-password button {
-  background: none;
-  border: none;
-  color: #667eea;
+.subtitle {
+  color: #6b7280;
   font-size: 14px;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
 }
 
-.dark .forgot-password button {
-  color: #a78bfa;
-}
-
-.reset-info {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-.dark .reset-info {
+.dark .subtitle {
   color: #9ca3af;
 }
 
-.password-input-wrapper {
+/* 5. Input Focus Animation (Floating Labels) */
+.input-group {
   position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  box-sizing: border-box;
+  margin-bottom: 24px;
 }
 
-.password-input-wrapper input {
+.input-group input {
   width: 100%;
-  padding-right: 45px;
-  box-sizing: border-box;
+  padding: 16px 16px 16px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 16px;
+  background: transparent;
+  transition: all 0.3s ease;
+  outline: none;
+  color: #1f2937;
+}
+
+.dark .input-group input {
+  border-color: #374151;
+  color: white;
+}
+
+.input-group label {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 16px;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  background: transparent;
+  padding: 0 4px;
+}
+
+/* Focus & Filled States */
+.input-group input:focus,
+.input-group input:not(:placeholder-shown) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.dark .input-group input:focus,
+.dark .input-group input:not(:placeholder-shown) {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+  top: 0;
+  font-size: 12px;
+  color: #667eea;
+  background: white;
+  height: auto;
+}
+
+.dark .input-group input:focus + label,
+.dark .input-group input:not(:placeholder-shown) + label {
+  background: #1f2937;
+  color: #a78bfa;
+}
+
+/* 6. Button Animations */
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.submit-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.submit-btn:active {
+  transform: scale(0.97);
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 7. Footer & Links */
+.auth-footer {
+  margin-top: 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+  padding: 0;
+}
+
+.link-btn:hover {
+  color: #1f2937;
+}
+
+.dark .link-btn {
+  color: #9ca3af;
+}
+
+.dark .link-btn:hover {
+  color: white;
+}
+
+.link-btn.highlight {
+  color: #667eea;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.dark .link-btn.highlight {
+  color: #a78bfa;
 }
 
 .password-toggle {
   position: absolute;
-  right: 12px;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Messages */
+.auth-message {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-message.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.auth-message.success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* Layout */
+.auth-split-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f9fafb;
+  overflow: hidden;
+}
+
+.auth-left-panel {
+  flex: 1;
+  background-color: #f3f4f6; /* Light gray background for figures */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-right-panel {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 2rem;
+  position: relative;
+}
+
+/* Form Styles */
+.input-group {
+  margin-bottom: 1.5rem;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  font-size: 1.2rem;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #1f2937;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #667eea;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.auth-message {
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.auth-message.error { background-color: #fee2e2; color: #991b1b; }
+.auth-message.success { background-color: #dcfce7; color: #166534; }
+
+/* --- Abstract Figures & Animations --- */
+
+.figures-container {
+  position: relative;
+  width: 375px; /* Increased from 300px to accommodate larger figures */
+  height: 375px; /* Increased from 300px */
+  /* Center the group */
+  display: flex;
   justify-content: center;
-  color: #666;
-  transition: color 0.2s;
+  align-items: center;
+}
+
+.figure {
+  position: absolute;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy transition */
+}
+
+/* 1. Orange Semicircle */
+.figure-orange {
+  width: 100px; /* Increased from 80px */
+  height: 50px; /* Increased from 40px */
+  background-color: #f97316; /* Orange */
+  border-radius: 50% 50% 0 0;
+  bottom: 50px;
+  left: 20px;
+  z-index: 2;
+}
+
+/* 2. Purple Rectangle */
+.figure-purple {
+  width: 138px; /* Increased from 110px */
+  height: 288px; /* Increased from 230px */
+  background-color: #4f46e5;
+  border-radius: 4px;
+  bottom: 0;
+  left: 50px;
   z-index: 1;
 }
 
-.password-toggle:hover {
-  color: #667eea;
+.figure-purple .face {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.1s ease-out; /* Smooth rotation for entire face */
 }
 
-.dark .password-toggle {
-  color: #9ca3af;
+.figure-purple .eyes {
+  display: flex;
+  gap: 18px;
+  /* Removed rotation transition - now handled by face container */
 }
 
-.dark .password-toggle:hover {
-  color: #a78bfa;
+.figure-purple .eye {
+  width: 15px; /* Increased from 12px */
+  height: 15px; /* Increased from 12px */
+  background: black;
+  border: none;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.password-toggle svg {
-  display: block;
+.figure-purple .eye .pupil {
+  width: 5px; /* Increased from 4px */
+  height: 5px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.1s ease-out;
+  /* Pupil will move via transform: translate() from JS */
+}
+
+.figure-purple .eye::after {
+  display: none;
+}
+
+.figure-purple .mouth {
+  width: 14px;
+  height: 6px;
+  background: #312e81;
+  border-radius: 6px;
+  margin-top: 4px;
+  /* Removed rotation transition - now handled by face container */
+}
+
+/* 3. Black Tall Rectangle */
+.figure-black {
+  width: 106px; /* Increased from 85px */
+  height: 200px; /* Increased from 160px */
+  background-color: #111827;
+  border-radius: 4px;
+  bottom: 0;
+  left: 140px; /* Changed from 160px - moved 5px left */
+  z-index: 2;
+}
+
+.figure-black .face {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: transform 0.1s ease-out; /* Smooth rotation for entire face */
+}
+
+.figure-black .eyes {
+  display: flex;
+  gap: 14px;
+  /* Removed rotation transition - now handled by face container */
+}
+
+.figure-black .eye {
+  width: 16px; /* Increased from 12px */
+  height: 16px; /* Increased from 12px */
+  background: white;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.figure-black .eye .pupil {
+  width: 6px; /* Increased from 4px */
+  height: 6px; /* Increased from 4px */
+  background: black;
+  border-radius: 50%;
+  transition: transform 0.1s ease-out;
+  /* Pupil will move via transform: translate() from JS */
+}
+
+.figure-black .eye::after {
+  display: none;
+}
+
+/* 3. Yellow Shape (Right) - Straight rectangular tombstone shape */
+.figure-yellow {
+  width: 106px; /* Increased from 85px */
+  height: 150px; /* Increased from 120px */
+  background-color: #eab308;
+  border-radius: 35px 35px 0 0;
+  bottom: 0;
+  left: 220px; /* Changed from 245px - moved 10px left */
+  z-index: 3;
+  transform: none;
+}
+
+.figure-yellow .face {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.1s ease-out; /* Smooth rotation for entire face */
+}
+
+.figure-yellow .eyes {
+  display: flex;
+  gap: 14px;
+  /* Removed rotation transition - now handled by face container */
+}
+
+.figure-yellow .eye {
+  width: 15px; /* Increased from 12px */
+  height: 15px; /* Increased from 12px */
+  background: white;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.figure-yellow .eye .pupil {
+  width: 6px; /* Increased from 5px */
+  height: 6px; /* Increased from 5px */
+  background: black;
+  border-radius: 50%;
+  transition: transform 0.1s ease-out;
+  /* Pupil will move via transform: translate() from JS */
+}
+
+.figure-yellow .mouth {
+  width: 36px;
+  height: 4px;
+  background: #000;
+  border-radius: 2px;
+  /* Removed rotation transition - now handled by face container */
+}
+
+/* 4. Orange Semicircle (Front Left) - Large */
+.figure-orange {
+  width: 200px; /* Reduced from 250px back to original */
+  height: 100px; /* Reduced from 125px back to original */
+  background-color: #f97316; /* Orange */
+  border-radius: 100px 100px 0 0;
+  bottom: 0;
+  left: 0;
+  z-index: 4;
+}
+
+.figure-orange .face {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.1s ease-out; /* Smooth rotation for entire face */
+}
+
+.figure-orange .eyes {
+  display: flex;
+  gap: 40px;
+  /* Removed rotation transition - now handled by face container */
+}
+
+.figure-orange .eye {
+  width: 18px; /* Increased from 14px */
+  height: 18px; /* Increased from 14px */
+  background: #431407;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.figure-orange .eye .pupil {
+  width: 8px; /* Increased from 6px */
+  height: 8px; /* Increased from 6px */
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.1s ease-out;
+  /* Pupil will move via transform: translate() from JS */
+}
+
+.figure-orange .mouth {
+  width: 20px; /* Increased from 16px */
+  height: 10px; /* Increased from 8px */
+  background: #431407;
+  border-radius: 0 0 20px 20px; /* Changed from 16px */
+  margin-top: 8px; /* Added to lower the mouth */
+  /* Removed rotation transition - now handled by face container */
+}
+
+/* --- ANIMATION STATES --- */
+
+/* IDLE: Gentle floating */
+.figures-group.idle .figure {
+  animation: float 6s ease-in-out infinite;
+}
+.figures-group.idle .figure-purple { animation-delay: 0s; }
+.figures-group.idle .figure-black { animation-delay: 1s; }
+.figures-group.idle .figure-orange { animation-delay: 2s; }
+.figures-group.idle .figure-yellow { animation-delay: 3s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* EMAIL FOCUS: Curious - Now using cringing behavior */
+.figures-group.curious .figure-purple {
+  /* Blue rectangle: banana curve to the left */
+  animation: stressCurveLeft 400ms cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  transform-origin: center bottom;
+}
+
+.figures-group.curious .figure-purple .face {
+  /* Face follows the curve */
+  animation: faceCringe 350ms ease-out forwards 50ms;
+}
+
+.figures-group.curious .figure-purple .eye {
+  /* Eyes slightly squeeze/squint */
+  transform: scaleY(0.85) scaleX(1.1);
+  transition: transform 200ms ease-out 100ms;
+}
+
+.figures-group.curious .figure-purple .mouth {
+  /* Mouth becomes tense line */
+  transform: scaleX(0.7) scaleY(0.6);
+  background: #1e1b4b;
+  transition: all 180ms ease-out 120ms;
+  opacity: 1;
+  visibility: visible;
+}
+
+.figures-group.curious .figure-black {
+  /* Black rectangle: synchronized curve matching blue */
+  animation: stressCurveLeft 400ms cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  transform-origin: center bottom;
+}
+
+.figures-group.curious .figure-black .face {
+  animation: faceCringe 350ms ease-out forwards 50ms;
+}
+
+.figures-group.curious .figure-black .eye {
+  transform: scaleY(0.8) scaleX(1.15);
+  transition: transform 200ms ease-out 100ms;
+}
+
+.figures-group.curious .figure-yellow {
+  /* Yellow figure: heavy tilt to the left */
+  animation: stressTiltLeft 380ms cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  transform-origin: center bottom;
+}
+
+.figures-group.curious .figure-yellow .face {
+  animation: faceCringe 350ms ease-out forwards 60ms;
+}
+
+.figures-group.curious .figure-yellow .eye {
+  transform: scaleY(0.82) scaleX(1.12);
+  transition: transform 200ms ease-out 110ms;
+}
+
+.figures-group.curious .figure-yellow .mouth {
+  /* Tense, thin line */
+  transform: scaleX(0.6) scaleY(0.5);
+  transition: all 180ms ease-out 130ms;
+}
+
+.figures-group.curious .figure-orange {
+  /* Orange semicircle: slide left and squish */
+  animation: stressSlideSquish 360ms cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  transform-origin: center bottom;
+}
+
+.figures-group.curious .figure-orange .face {
+  animation: faceCringe 350ms ease-out forwards 40ms;
+}
+
+.figures-group.curious .figure-orange .eye {
+  transform: scaleY(0.88) scaleX(1.08);
+  transition: transform 200ms ease-out 90ms;
+}
+
+.figures-group.curious .figure-orange .mouth {
+  /* Worried expression - inverted smile */
+  transform: scaleY(-0.8) scaleX(1.1);
+  transition: all 180ms ease-out 110ms;
+}
+
+/* PASSWORD FOCUS: Shy/Hiding */
+.figures-group.shy .figure-purple {
+  /* Blue rectangle: banana curve to the left */
+  animation: stressCurveLeft 400ms cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  transform-origin: center bottom;
+}
+
+.figures-group.shy .figure-purple .face {
+  /* Face follows the curve */
+  animation: faceCringe 350ms ease-out forwards 50ms;
+}
+
+.figures-group.shy .figure-purple .eye {
+  /* Eyes slightly squeeze/squint */
+  transform: scaleY(0.85) scaleX(1.1);
+  transition: transform 200ms ease-out 100ms;
+}
+
+.figures-group.shy .figure-purple .mouth {
+  /* Mouth becomes tense line */
+  transform: scaleX(0.7) scaleY(0.6);
+  background: #1e1b4b;
+  transition: all 180ms ease-out 120ms;
+  opacity: 1;
+  visibility: visible;
+}
+
+.figures-group.shy .figure-black {
+  /* Black rectangle: synchronized curve matching blue */
+  animation: stressCurveLeft 400ms cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  transform-origin: center bottom;
+}
+
+.figures-group.shy .figure-black .face {
+  animation: faceCringe 350ms ease-out forwards 50ms;
+}
+
+.figures-group.shy .figure-black .eye {
+  transform: scaleY(0.8) scaleX(1.15);
+  transition: transform 200ms ease-out 100ms;
+}
+
+.figures-group.shy .figure-yellow {
+  /* Yellow figure: heavy tilt to the left */
+  animation: stressTiltLeft 380ms cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  transform-origin: center bottom;
+}
+
+.figures-group.shy .figure-yellow .face {
+  animation: faceCringe 350ms ease-out forwards 60ms;
+}
+
+.figures-group.shy .figure-yellow .eye {
+  transform: scaleY(0.82) scaleX(1.12);
+  transition: transform 200ms ease-out 110ms;
+}
+
+.figures-group.shy .figure-yellow .mouth {
+  /* Tense, thin line */
+  transform: scaleX(0.6) scaleY(0.5);
+  transition: all 180ms ease-out 130ms;
+}
+
+.figures-group.shy .figure-orange {
+  /* Orange semicircle: slide left and squish */
+  animation: stressSlideSquish 360ms cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  transform-origin: center bottom;
+}
+
+.figures-group.shy .figure-orange .face {
+  animation: faceCringe 350ms ease-out forwards 40ms;
+}
+
+.figures-group.shy .figure-orange .eye {
+  transform: scaleY(0.88) scaleX(1.08);
+  transition: transform 200ms ease-out 90ms;
+}
+
+.figures-group.shy .figure-orange .mouth {
+  /* Worried expression - inverted smile */
+  transform: scaleY(-0.8) scaleX(1.1);
+  transition: all 180ms ease-out 110ms;
+}
+
+/* Stress/Cringe Animations */
+@keyframes stressCurveLeft {
+  0% {
+    transform: translateY(0) rotate(0) scaleX(1);
+  }
+  20% {
+    /* Anticipation: slight right before bending left */
+    transform: translateY(-2px) rotate(1deg) scaleX(1.02);
+  }
+  100% {
+    /* Banana curve: lean far left with bend */
+    transform: translateX(-18px) translateY(8px) rotate(-15deg) scaleX(0.92) skewX(-8deg);
+  }
+}
+
+@keyframes stressTiltLeft {
+  0% {
+    transform: translateY(0) rotate(0);
+  }
+  18% {
+    /* Anticipation */
+    transform: translateY(-1px) rotate(1deg);
+  }
+  100% {
+    /* Heavy tilt left */
+    transform: translateX(-12px) translateY(6px) rotate(-18deg) scaleX(0.95);
+  }
+}
+
+@keyframes stressSlideSquish {
+  0% {
+    transform: translateX(0) scaleX(1) scaleY(1);
+  }
+  15% {
+    /* Anticipation: slight expansion */
+    transform: translateX(2px) scaleX(1.05) scaleY(0.98);
+  }
+  100% {
+    /* Slide left and squish */
+    transform: translateX(-15px) scaleX(0.88) scaleY(1.08) rotate(-8deg);
+  }
+}
+
+@keyframes faceCringe {
+  0% {
+    transform: translateX(-50%) translateY(0) rotate(0);
+  }
+  20% {
+    /* Anticipation: slight opposite */
+    transform: translateX(-50%) translateY(-1px) rotate(2deg);
+  }
+  100% {
+    /* Cringe away */
+    transform: translateX(-55%) translateY(3px) rotate(-6deg);
+  }
+}
+
+/* SHOW PASSWORD: Peek - Everyone looks away */
+.figures-group.peek .figure-purple,
+.figures-group.peek .figure-black,
+.figures-group.peek .figure-yellow,
+.figures-group.peek .figure-orange {
+  animation: none; /* Disable relief animation */
+  transform: none;
+}
+
+.figures-group.peek .figure-purple .face,
+.figures-group.peek .figure-black .face,
+.figures-group.peek .figure-yellow .face,
+.figures-group.peek .figure-orange .face {
+  /* Immediately look away (rotate left) */
+  transform: translateX(-60%) rotate(-25deg) !important;
+  transition: transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
+}
+
+.figures-group.peek .figure-orange .mouth {
+  /* Whistling mouth shape */
+  width: 8px;
+  height: 8px;
+  background: transparent;
+  border: 2px solid #431407;
+  border-radius: 50%;
+  /* Use static positioning to keep it in flow below eyes */
+  position: static;
+  transform: none;
+  margin-top: 8px;
+}
+
+.figures-group.peek .figure-yellow .mouth {
+  /* Whistling mouth shape - !important removed to allow animation */
+  width: 8px;
+  height: 8px;
+  background: transparent;
+  border: 2px solid #000;
+  border-radius: 50%;
+  /* Use static positioning to keep it in flow below eyes */
+  position: static;
+  transform: none;
+  margin-top: 4px;
+  animation: whistle 1s ease-in-out infinite;
+}
+
+/* Musical Notes for Whistling */
+.music-note {
+  position: absolute;
+  font-size: 12px;
+  color: #000;
+  opacity: 0;
+  pointer-events: none;
+  top: 30px; /* Start near mouth */
+  left: 50%;
+}
+
+.figures-group.peek .figure-yellow .music-note {
+  animation: floatNote 2s linear infinite;
+}
+
+.figures-group.peek .figure-yellow .note-1 {
+  animation-delay: 0s;
+  left: 45%;
+}
+
+.figures-group.peek .figure-yellow .note-2 {
+  animation-delay: 1s;
+  left: 55%;
+  font-size: 10px;
+}
+
+@keyframes floatNote {
+  0% {
+    transform: translate(-50%, 0) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -40px) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes whistle {
+  0%, 100% {
+    width: 8px;
+    height: 8px;
+    border-width: 2px;
+  }
+  50% {
+    width: 6px;
+    height: 6px;
+    border-width: 3px;
+  }
+}
+
+/* Relief/Return Animations */
+@keyframes reliefReturn {
+  0% {
+    transform: translateX(-18px) translateY(8px) rotate(-15deg) scaleX(0.92) skewX(-8deg);
+  }
+  60% {
+    /* Overshoot slightly right */
+    transform: translateX(2px) translateY(-1px) rotate(2deg) scaleX(1.02) skewX(0);
+  }
+  100% {
+    /* Settle back to normal */
+    transform: translateX(0) translateY(0) rotate(0) scaleX(1) skewX(0);
+  }
+}
+
+@keyframes reliefReturnTilt {
+  0% {
+    transform: translateX(-12px) translateY(6px) rotate(-18deg) scaleX(0.95);
+  }
+  60% {
+    transform: translateX(2px) translateY(-1px) rotate(3deg) scaleX(1.02);
+  }
+  100% {
+    transform: translateX(0) translateY(0) rotate(0) scaleX(1);
+  }
+}
+
+@keyframes reliefReturnSlide {
+  0% {
+    transform: translateX(-15px) scaleX(0.88) scaleY(1.08) rotate(-8deg);
+  }
+  60% {
+    transform: translateX(3px) scaleX(1.03) scaleY(0.98) rotate(2deg);
+  }
+  100% {
+    transform: translateX(0) scaleX(1) scaleY(1) rotate(0);
+  }
+}
+
+@keyframes faceRelief {
+  0% {
+    transform: translateX(-55%) translateY(3px) rotate(-6deg);
+  }
+  60% {
+    /* Overshoot */
+    transform: translateX(-48%) translateY(-1px) rotate(2deg);
+  }
+  100% {
+    /* Settle */
+    transform: translateX(-50%) translateY(0) rotate(0);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .figures-group.curious .figure-black,
+  .figures-group.curious .figure-yellow,
+  .figures-group.curious .figure-purple,
+  .figures-group.curious .figure-orange {
+    animation: none;
+    transition: none;
+  }
+  
+  .figures-group.curious .face {
+    animation: none;
+  }
+  
+  .figures-group.curious .eye,
+  .figures-group.curious .pupil,
+  .figures-group.curious .mouth {
+    animation: none;
+    transition: opacity 100ms ease;
+  }
+  
+  .figures-group.shy .figure-black,
+  .figures-group.shy .figure-yellow,
+  .figures-group.shy .figure-purple,
+  .figures-group.shy .figure-orange,
+  .figures-group.peek .figure-black,
+  .figures-group.peek .figure-yellow,
+  .figures-group.peek .figure-purple,
+  .figures-group.peek .figure-orange {
+    animation: none;
+    transition: none;
+  }
+  
+  .figures-group.shy .face,
+  .figures-group.peek .face {
+    animation: none;
+  }
 }
