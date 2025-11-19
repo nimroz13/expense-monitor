@@ -57,6 +57,14 @@ function Auth({ onLogin }) {
   // Track mouse movement for face following
   useEffect(() => {
     const handleMouseMove = (e) => {
+      // Parallax effect for background bubbles
+      const particles = document.querySelector('.background-particles');
+      if (particles) {
+        const moveX = (e.clientX * -0.02);
+        const moveY = (e.clientY * -0.02);
+        particles.style.transform = `translate(${moveX}px, ${moveY}px)`;
+      }
+
       // Stop tracking if password is shown (peek) or focused on password or shattering
       if (focusField === 'password' || animationState === 'shatter' || showPassword) return;
 
@@ -204,7 +212,7 @@ function Auth({ onLogin }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setAnimationState('idle'); // Reset animation on error
+        setAnimationState('error'); // Changed from idle
         throw new Error(data.error || 'Authentication failed');
       }
 
@@ -217,8 +225,9 @@ function Auth({ onLogin }) {
       }, 500);
       
     } catch (err) {
-      setAnimationState('idle'); // Reset animation on error
+      setAnimationState('error'); // Changed from idle
       setError(err.message);
+      setTimeout(() => setAnimationState('idle'), 2000); // Reset after 2s
     } finally {
       setLoading(false);
     }
@@ -352,6 +361,7 @@ function Auth({ onLogin }) {
   const getFigureClass = () => {
     if (animationState === 'shatter') return 'shatter';
     if (animationState === 'success') return 'success';
+    if (animationState === 'error') return 'error';
     if (showPassword) return 'peek';
     if (focusField === 'password') return 'shy';
     if (focusField === 'email') return 'curious';
@@ -361,6 +371,13 @@ function Auth({ onLogin }) {
   // Helper to combine eye translation with animation scales
   const getEyeStyle = (key) => {
     const figureClass = getFigureClass();
+
+    if (figureClass === 'error') {
+      return {
+        transform: 'translate(0, 0)', 
+        transition: 'transform 0.2s ease-out'
+      };
+    }
 
     // Look away when showing password (peek state)
     if (figureClass === 'peek') {
@@ -397,6 +414,10 @@ function Auth({ onLogin }) {
     let scale = '';
     const figureClass = getFigureClass();
 
+    if (figureClass === 'error') {
+      return { transform: 'translate(0, 0)' };
+    }
+
     if (figureClass === 'peek') {
        if (key === 'orange' || key === 'yellow') {
          return {}; // Let CSS handle whistling animation
@@ -427,6 +448,12 @@ function Auth({ onLogin }) {
   // Helper for pupil style to look away during peek
   const getPupilStyle = (key) => {
     const figureClass = getFigureClass();
+    if (figureClass === 'error') {
+      return {
+        transform: 'translate(0, 4px)', // Look down
+        transition: 'transform 0.2s ease-out'
+      };
+    }
     if (figureClass === 'peek') {
       return {
         transform: 'translate(-3px, -1px)', 
@@ -442,6 +469,9 @@ function Auth({ onLogin }) {
   // Helper for face rotation style
   const getFaceStyle = (key) => {
     const figureClass = getFigureClass();
+    if (figureClass === 'error') {
+      return {}; // Reset rotation
+    }
     // If peeking, let CSS handle the look-away transform by returning empty style
     if (figureClass === 'peek') {
       return {}; 
@@ -560,6 +590,7 @@ function Auth({ onLogin }) {
   if (isForgotPassword) {
     return (
       <div className="auth-split-layout">
+        <BackgroundParticles />
         <div className="auth-left-panel">
           {AbstractFigures()}
         </div>
@@ -647,6 +678,7 @@ function Auth({ onLogin }) {
 
   return (
     <div className="auth-split-layout">
+      <BackgroundParticles />
       <div className="auth-left-panel">
         {AbstractFigures()}
       </div>

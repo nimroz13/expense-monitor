@@ -23,26 +23,69 @@
 /* 2. Floating Particles (Subtle Background) */
 .background-particles {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: -10%;
+  left: -10%;
+  width: 120%; /* Larger than screen to allow movement */
+  height: 120%;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0; /* Behind panels */
+  overflow: hidden;
+  transition: transform 0.1s ease-out; /* Smooth mouse movement */
 }
 
 .particle {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  animation: float 20s infinite linear;
+  /* Clearer bubble style - Lavender */
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(216, 180, 254, 0.6));
+  box-shadow: 
+    0 4px 12px rgba(147, 51, 234, 0.15),
+    inset 0 0 12px rgba(255, 255, 255, 0.8);
+  opacity: 0.8;
+  animation: float 20s infinite ease-in-out;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(2px);
 }
 
-.p1 { width: 80px; height: 80px; top: 10%; left: 10%; animation-duration: 25s; }
-.p2 { width: 40px; height: 40px; top: 20%; right: 20%; animation-duration: 18s; animation-delay: -5s; }
-.p3 { width: 60px; height: 60px; bottom: 15%; left: 20%; animation-duration: 22s; animation-delay: -2s; }
-.p4 { width: 30px; height: 30px; bottom: 30%; right: 10%; animation-duration: 15s; animation-delay: -8s; }
-.p5 { width: 100px; height: 100px; top: 40%; left: 50%; opacity: 0.1; animation-duration: 30s; }
+.p1 { 
+  width: 120px; 
+  height: 120px; 
+  top: 10%; 
+  left: 10%; 
+  animation-duration: 25s; 
+}
+.p2 { 
+  width: 80px; 
+  height: 80px; 
+  top: 20%; 
+  right: 15%; 
+  animation-duration: 18s; 
+  animation-delay: -5s; 
+}
+.p3 { 
+  width: 150px; 
+  height: 150px; 
+  bottom: 15%; 
+  left: 20%; 
+  animation-duration: 22s; 
+  animation-delay: -2s; 
+}
+.p4 { 
+  width: 60px; 
+  height: 60px; 
+  bottom: 30%; 
+  right: 10%; 
+  animation-duration: 15s; 
+  animation-delay: -8s; 
+}
+.p5 { 
+  width: 100px; 
+  height: 100px; 
+  top: 40%; 
+  left: 50%; 
+  opacity: 0.4; 
+  animation-duration: 30s; 
+}
 
 @keyframes float {
   0% { transform: translate(0, 0) rotate(0deg); }
@@ -292,18 +335,49 @@
   display: flex;
   height: 100vh;
   width: 100vw;
-  background-color: #f9fafb;
+  /* Apply gradient to root so it shows behind transparent panels */
+  background: linear-gradient(135deg, #f3e8ff 0%, #e0f2fe 100%);
+  position: relative;
   overflow: hidden;
 }
 
 .auth-left-panel {
   flex: 1;
-  background-color: #f3f4f6; /* Light gray background for figures */
+  /* Semi-transparent background to show bubbles */
+  background: 
+    linear-gradient(135deg, rgba(243, 244, 246, 0.6) 0%, rgba(224, 242, 254, 0.4) 100%);
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
   overflow: hidden;
+  z-index: 1;
+}
+
+/* Decorative circles in left panel */
+.auth-left-panel::before {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.15), transparent);
+  top: -150px;
+  right: -100px;
+  z-index: 0;
+}
+
+.auth-left-panel::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(147, 197, 253, 0.2), transparent);
+  bottom: -100px;
+  left: -50px;
+  z-index: 0;
 }
 
 .auth-right-panel {
@@ -311,103 +385,83 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #ffffff;
+  /* Semi-transparent background with pattern */
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(196, 181, 253, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(167, 243, 208, 0.1) 0%, transparent 50%),
+    rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
   padding: 2rem;
   position: relative;
+  z-index: 1;
 }
 
-/* Form Styles */
-.input-group {
-  margin-bottom: 1.5rem;
-}
-
-.input-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #374151;
-  font-weight: 500;
-}
-
-.input-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  transition: border-color 0.2s;
-}
-
-.input-group input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.password-wrapper {
-  position: relative;
-}
-
-.toggle-password {
+/* Decorative geometric shapes in right panel */
+.auth-right-panel::before {
+  content: '';
   position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.2rem;
+  width: 200px;
+  height: 200px;
+  border: 2px solid rgba(167, 139, 250, 0.2);
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  top: 10%;
+  right: 10%;
+  animation: morphShape 8s ease-in-out infinite;
+  z-index: 0;
 }
 
-.submit-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #1f2937;
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.1s;
+.auth-right-panel::after {
+  content: '';
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border: 2px solid rgba(147, 197, 253, 0.2);
+  border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%;
+  bottom: 15%;
+  left: 10%;
+  animation: morphShape 6s ease-in-out infinite reverse;
+  z-index: 0;
 }
 
-.submit-btn:active {
-  transform: scale(0.98);
+@keyframes morphShape {
+  0%, 100% {
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
+    transform: rotate(180deg) scale(1.1);
+  }
 }
 
-.auth-footer {
-  margin-top: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  text-align: center;
+/* Grid pattern overlay for subtle texture */
+.auth-split-layout::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(167, 139, 250, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167, 139, 250, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 0;
 }
-
-.link-btn {
-  background: none;
-  border: none;
-  color: #667eea;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.auth-message {
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-.auth-message.error { background-color: #fee2e2; color: #991b1b; }
-.auth-message.success { background-color: #dcfce7; color: #166534; }
 
 /* --- Abstract Figures & Animations --- */
 
-.figures-container {
+.figures-group {
   position: relative;
-  width: 375px; /* Increased from 300px to accommodate larger figures */
-  height: 375px; /* Increased from 300px */
+  width: 375px;
+  height: 375px;
   /* Center the group */
   display: flex;
   justify-content: center;
   align-items: center;
+  transform: scale(1.1);
+  z-index: 2; /* Ensure above bubbles and decorations */
 }
 
 .figure {
@@ -893,6 +947,38 @@
     /* Cringe away */
     transform: translateX(-55%) translateY(3px) rotate(-6deg);
   }
+}
+
+/* ERROR STATE: Sad/Disappointed */
+.figures-group.error .figure {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.figures-group.error .figure-orange .mouth {
+  border-radius: 20px 20px 0 0; /* Frown */
+  margin-top: 12px;
+  height: 8px;
+  transition: all 0.3s ease;
+}
+
+.figures-group.error .figure-yellow .mouth {
+  border-radius: 50% 50% 0 0; /* Frown */
+  height: 6px;
+  margin-top: 2px;
+  transition: all 0.3s ease;
+}
+
+.figures-group.error .figure-purple .mouth {
+  border-radius: 50% 50% 0 0; /* Frown */
+  height: 6px;
+  transition: all 0.3s ease;
 }
 
 /* SHOW PASSWORD: Peek - Everyone looks away */
