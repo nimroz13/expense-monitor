@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Auth.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 function Auth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -197,7 +199,7 @@ function Auth({ onLogin }) {
     await new Promise(r => setTimeout(r, 800)); 
 
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const endpoint = isLogin ? `${API_URL}/auth/login` : `${API_URL}/auth/register`;
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
