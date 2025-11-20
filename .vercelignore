@@ -1,0 +1,40 @@
+# Dependencies
+node_modules
+frontend/node_modules
+backend/node_modules
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+backend/.env
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Build files (these will be rebuilt by Vercel)
+frontend/build
+frontend/.cache
+
+# Testing
+coverage
+
+# Misc
+.git
+.gitignore
+README.md

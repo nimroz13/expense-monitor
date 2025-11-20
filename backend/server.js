@@ -9,20 +9,45 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: process.env.NODE_ENV === 'production'
+    ? [process.env.FRONTEND_URL, 'https://expenses-monitor.vercel.app', 'https://expenses-monitor-git-master-nimroz13.vercel.app']
+    : ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true
 }));
 app.use(express.json());
 
-// MongoDB Connection with error handling
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/expenses-monitor', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('✅ MongoDB Connected'))
-.catch(err => {
-  console.error('❌ MongoDB connection error:', err);
-  process.exit(1);
+// MongoDB Connection - Serverless-ready with connection caching
+let cachedDb = null;
+
+const connectDB = async () => {
+  if (cachedDb && mongoose.connection.readyState === 1) {
+    console.log('✅ Using cached MongoDB connection');
+    return cachedDb;
+  }
+
+  try {
+    const connection = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/expenses-monitor', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000,
+      maxPoolSize: 10,
+    });
+    
+    cachedDb = connection;
+    console.log('✅ MongoDB Connected');
+    return connection;
+  } catch (err) {
+    console.error('❌ MongoDB connection error:', err);
+    throw err;
+  }
+};
+
+// Initialize DB connection
+connectDB().catch(err => {
+  console.error('Failed to connect to MongoDB:', err);
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
 });
 
 // User Schema

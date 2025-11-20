@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import './Auth.css';
 
 // Updated API URL - ensure it points to your running backend
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NODE_ENV === 'production'
+  ? (process.env.REACT_APP_API_URL || window.location.origin)
+  : (process.env.REACT_APP_API_URL || 'http://localhost:5000');
 
 function Auth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
