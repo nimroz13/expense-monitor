@@ -1,31 +1,93 @@
 const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-
-const User = require('./models/User');
-const auth = require('./middleware/auth');
-const { sendResetEmail } = require('./config/emailService');
 
 const app = express();
 
 // Middleware
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://your-vercel-app.vercel.app'
-  ],
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true
 }));
-app.use(bodyParser.json());
+app.use(express.json());
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// MongoDB Connection with error handling
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/expenses-monitor', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('✅ MongoDB Connected'))
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err);
+  process.exit(1);
+});
+
+// User Schema
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  resetToken: String,
+  resetTokenExpiry: Date,
+  incomes: [{
+    name: String,
+    amount: Number,
+    date: Date,
+    month: String
+  }],
+  expenses: [{
+    name: String,
+    amount: Number,
+    category: String,
+    date: Date,
+    month: String
+  }]
+});
+
+const User = mongoose.model('User', userSchema);
+
+// Auth Middleware
+const auth = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      throw new Error();
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = decoded.userId;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Please authenticate' });
+  }
+};
+
+// Email sending function
+const sendResetEmail = async (email, resetToken) => {
+  const nodemailer = require('nodemailer');
+  
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Password Reset Code',
+    html: `
+      <h2>Password Reset Request</h2>
+      <p>Your reset code is: <strong>${resetToken}</strong></p>
+      <p>This code will expire in 1 hour.</p>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
 
 // Auth Routes
 app.post('/api/auth/register', async (req, res) => {
@@ -79,195 +141,183 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       return res.status(404).json({ error: 'No account with that email exists' });
     }
 
-    // Generate reset token (6-digit code)
     const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
     user.resetToken = resetToken;
     user.resetTokenExpiry = Date.now() + 3600000; // 1 hour
     await user.save();
 
-    // Send email with reset code
     try {
-      console.log('Attempting to send email to:', email);
-      console.log('Email config:', { 
-        user: process.env.EMAIL_USER, 
-        hasPassword: !!process.env.EMAIL_PASS 
-      });
-      
       await sendResetEmail(email, resetToken);
-      
-      console.log('Email sent successfully!');
-      res.json({ 
-        message: 'Reset code sent to your email',
-        email: user.email 
-      });
+      res.json({ message: 'Reset code sent to your email', email: user.email });
     } catch (emailError) {
-      // If email fails, still return the code for development
-      console.error('Email sending failed:', emailError.message);message // Add error message for debugging
-      console.error('Full error:', emailError);
+      console.error('Email error:', emailError);
       res.json({ 
-        message: 'Email service unavailable. Reset code (for testing)',atch (error) {
-        resetToken, // Fallback for developmentReset request error:', error);
-        email: user.email,ess reset request' });
+        resetToken, // Fallback for development
         email: user.email,
-        error: emailError.message // Add error message for debugging
+        message: 'Email service unavailable. Check console for reset code.'
       });
-    }// Verify Reset Token
-  } catch (error) {erify-reset-token', async (req, res) => {
-    console.error('Reset request error:', error);
-    res.status(500).json({ error: 'Failed to process reset request' });st { email, resetToken } = req.body;
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to process reset request' });
   }
-});    const user = await User.findOne({ 
+});
 
-// Verify Reset Tokenoken,
-app.post('/api/auth/verify-reset-token', async (req, res) => {xpiry: { $gt: Date.now() }
+// Verify Reset Token
+app.post('/api/auth/verify-reset-token', async (req, res) => {
   try {
     const { email, resetToken } = req.body;
-    if (!user) {
-    const user = await User.findOne({ .status(400).json({ error: 'Invalid or expired reset code' });
+
+    const user = await User.findOne({ 
       email,
       resetToken,
-      resetTokenExpiry: { $gt: Date.now() }    res.json({ message: 'Reset code verified' });
+      resetTokenExpiry: { $gt: Date.now() }
     });
-.json({ error: 'Verification failed' });
+
     if (!user) {
       return res.status(400).json({ error: 'Invalid or expired reset code' });
     }
-// Reset Password
-    res.json({ message: 'Reset code verified' });th/reset-password', async (req, res) => {
-  } catch (error) {
-    res.status(500).json({ error: 'Verification failed' });st { email, resetToken, newPassword } = req.body;
-  }
-});    const user = await User.findOne({ 
 
-// Reset Passwordoken,
-app.post('/api/auth/reset-password', async (req, res) => {xpiry: { $gt: Date.now() }
+    res.json({ message: 'Reset code verified' });
+  } catch (error) {
+    res.status(500).json({ error: 'Verification failed' });
+  }
+});
+
+// Reset Password
+app.post('/api/auth/reset-password', async (req, res) => {
   try {
     const { email, resetToken, newPassword } = req.body;
-    if (!user) {
-    const user = await User.findOne({ .status(400).json({ error: 'Invalid or expired reset code' });
+
+    const user = await User.findOne({ 
       email,
       resetToken,
-      resetTokenExpiry: { $gt: Date.now() }    const hashedPassword = await bcrypt.hash(newPassword, 10);
+      resetTokenExpiry: { $gt: Date.now() }
     });
 
-    if (!user) {fined;
+    if (!user) {
       return res.status(400).json({ error: 'Invalid or expired reset code' });
     }
-    res.json({ message: 'Password reset successful' });
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;.json({ error: 'Password reset failed' });
+    user.password = hashedPassword;
     user.resetToken = undefined;
     user.resetTokenExpiry = undefined;
     await user.save();
-// Protected Routes for Incomes
-    res.json({ message: 'Password reset successful' });auth, async (req, res) => {
+
+    res.json({ message: 'Password reset successful' });
   } catch (error) {
-    res.status(500).json({ error: 'Password reset failed' });st user = await User.findById(req.userId);
-  }c.month === req.params.month);
+    res.status(500).json({ error: 'Password reset failed' });
+  }
 });
 
-// Protected Routes for Incomes.json({ error: 'Failed to fetch incomes' });
+// Income Routes
 app.get('/api/incomes/:month', auth, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
-    const incomes = user.incomes.filter(inc => inc.month === req.params.month);app.post('/api/incomes/:month', auth, async (req, res) => {
+    const incomes = user.incomes.filter(inc => inc.month === req.params.month);
     res.json(incomes);
-  } catch (error) {st user = await User.findById(req.userId);
-    res.status(500).json({ error: 'Failed to fetch incomes' });arams.month };
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch incomes' });
   }
 });
-mes[user.incomes.length - 1]);
+
 app.post('/api/incomes/:month', auth, async (req, res) => {
-  try {.json({ error: 'Failed to add income' });
+  try {
     const user = await User.findById(req.userId);
     const newIncome = { ...req.body, month: req.params.month };
     user.incomes.push(newIncome);
-    await user.save();app.put('/api/incomes/:month/:id', auth, async (req, res) => {
+    await user.save();
     res.json(user.incomes[user.incomes.length - 1]);
-  } catch (error) {st user = await User.findById(req.userId);
-    res.status(500).json({ error: 'Failed to add income' });;
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add income' });
   }
-});tatus(404).json({ error: 'Income not found' });
+});
 
-app.put('/api/incomes/:month/:id', auth, async (req, res) => {bject.assign(income, req.body);
+app.put('/api/incomes/:month/:id', auth, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
     const income = user.incomes.id(req.params.id);
-    if (!income) {.json({ error: 'Failed to update income' });
+    if (!income) {
       return res.status(404).json({ error: 'Income not found' });
     }
     Object.assign(income, req.body);
-    await user.save();app.delete('/api/incomes/:month/:id', auth, async (req, res) => {
+    await user.save();
     res.json(income);
-  } catch (error) {st user = await User.findById(req.userId);
+  } catch (error) {
     res.status(500).json({ error: 'Failed to update income' });
   }
-});: 'Deleted' });
+});
 
-app.delete('/api/incomes/:month/:id', auth, async (req, res) => {.json({ error: 'Failed to delete income' });
+app.delete('/api/incomes/:month/:id', auth, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
     user.incomes.pull(req.params.id);
-    await user.save();// Protected Routes for Expenses
-    res.json({ message: 'Deleted' });auth, async (req, res) => {
+    await user.save();
+    res.json({ message: 'Deleted' });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete income' });st user = await User.findById(req.userId);
-  }exp.month === req.params.month);
+    res.status(500).json({ error: 'Failed to delete income' });
+  }
 });
 
-// Protected Routes for Expenses.json({ error: 'Failed to fetch expenses' });
+// Expense Routes
 app.get('/api/expenses/:month', auth, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
-    const expenses = user.expenses.filter(exp => exp.month === req.params.month);app.post('/api/expenses/:month', auth, async (req, res) => {
+    const expenses = user.expenses.filter(exp => exp.month === req.params.month);
     res.json(expenses);
-  } catch (error) {st user = await User.findById(req.userId);
-    res.status(500).json({ error: 'Failed to fetch expenses' });params.month };
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch expenses' });
   }
 });
-nses[user.expenses.length - 1]);
+
 app.post('/api/expenses/:month', auth, async (req, res) => {
-  try {.json({ error: 'Failed to add expense' });
+  try {
     const user = await User.findById(req.userId);
     const newExpense = { ...req.body, month: req.params.month };
     user.expenses.push(newExpense);
-    await user.save();app.put('/api/expenses/:month/:id', auth, async (req, res) => {
+    await user.save();
     res.json(user.expenses[user.expenses.length - 1]);
-  } catch (error) {st user = await User.findById(req.userId);
-    res.status(500).json({ error: 'Failed to add expense' });d);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add expense' });
   }
-});atus(404).json({ error: 'Expense not found' });
+});
 
-app.put('/api/expenses/:month/:id', auth, async (req, res) => {bject.assign(expense, req.body);
+app.put('/api/expenses/:month/:id', auth, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
     const expense = user.expenses.id(req.params.id);
-    if (!expense) {.json({ error: 'Failed to update expense' });
+    if (!expense) {
       return res.status(404).json({ error: 'Expense not found' });
     }
     Object.assign(expense, req.body);
-    await user.save();app.delete('/api/expenses/:month/:id', auth, async (req, res) => {
+    await user.save();
     res.json(expense);
-  } catch (error) {st user = await User.findById(req.userId);
+  } catch (error) {
     res.status(500).json({ error: 'Failed to update expense' });
   }
-});: 'Deleted' });
+});
 
-app.delete('/api/expenses/:month/:id', auth, async (req, res) => {.json({ error: 'Failed to delete expense' });
+app.delete('/api/expenses/:month/:id', auth, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
     user.expenses.pull(req.params.id);
-    await user.save();// Export for Vercel serverless
+    await user.save();
     res.json({ message: 'Deleted' });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete expense' });Only listen if not in serverless environment
-  }if (process.env.NODE_ENV !== 'production') {
+    res.status(500).json({ error: 'Failed to delete expense' });
+  }
+});
 
+// Export for Vercel serverless
+module.exports = app;
 
-
-
-
-
-});  console.log(`Server running on port ${PORT}`);app.listen(PORT, () => {});  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Only listen if not in serverless environment
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  }).on('error', (err) => {
+    console.error('❌ Server error:', err);
+    process.exit(1);
+  });
 }

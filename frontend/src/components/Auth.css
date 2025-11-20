@@ -106,6 +106,8 @@
   z-index: 10;
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.5);
+  /* Ensure children stay inside */
+  overflow: visible;
 }
 
 .entrance-animation {
@@ -163,6 +165,8 @@
 .input-group {
   position: relative;
   margin-bottom: 24px;
+  /* Ensure inputs stay inside card */
+  width: 100%;
 }
 
 .input-group input {
@@ -175,6 +179,8 @@
   transition: all 0.3s ease;
   outline: none;
   color: #1f2937;
+  /* Prevent inputs from breaking out */
+  box-sizing: border-box;
 }
 
 .dark .input-group input {
@@ -1168,5 +1174,131 @@
   .figures-group.shy .face,
   .figures-group.peek .face {
     animation: none;
+  }
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .auth-split-layout {
+    flex-direction: column; /* Stack vertically */
+    height: auto;
+    min-height: 100vh;
+  }
+
+  /* Left panel (figures) goes on top */
+  .auth-left-panel {
+    order: 1;
+    height: 40vh;
+    min-height: 300px;
+    flex: none;
+  }
+
+  /* Right panel (form) goes below */
+  .auth-right-panel {
+    order: 2;
+    flex: 1;
+    padding: 2rem 1rem;
+  }
+
+  /* Scale down figures for mobile */
+  .figures-group {
+    transform: scale(0.7);
+  }
+
+  /* Adjust auth card for mobile */
+  .auth-card {
+    padding: 30px 20px;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  /* Smaller typography on mobile */
+  .card-header h2 {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+  }
+
+  /* Adjust input fields for mobile */
+  .input-group input {
+    padding: 14px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  .input-group label {
+    font-size: 14px;
+  }
+
+  /* Adjust submit button */
+  .submit-btn {
+    padding: 14px;
+    font-size: 15px;
+  }
+
+  /* Hide decorative elements on very small screens */
+  .auth-left-panel::before,
+  .auth-left-panel::after,
+  .auth-right-panel::before,
+  .auth-right-panel::after {
+    display: none;
+  }
+
+  /* Reduce particle size on mobile */
+  .particle {
+    opacity: 0.5;
+  }
+
+  .p1, .p2, .p3, .p4, .p5 {
+    transform: scale(0.7);
+  }
+}
+
+/* Extra small devices (phones in portrait) */
+@media (max-width: 480px) {
+  .auth-left-panel {
+    height: 35vh;
+    min-height: 250px;
+  }
+
+  .figures-group {
+    transform: scale(0.5);
+  }
+
+  .auth-card {
+    padding: 25px 15px;
+  }
+
+  .card-header h2 {
+    font-size: 22px;
+  }
+
+  .auth-footer {
+    font-size: 13px;
+  }
+}
+
+/* Landscape mode on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .auth-split-layout {
+    flex-direction: row; /* Side by side in landscape */
+  }
+
+  .auth-left-panel {
+    order: 1;
+    height: 100vh;
+    width: 40%;
+    flex: none;
+  }
+
+  .auth-right-panel {
+    order: 2;
+    width: 60%;
+    flex: 1;
+  }
+
+  .figures-group {
+    transform: scale(0.6);
   }
 }

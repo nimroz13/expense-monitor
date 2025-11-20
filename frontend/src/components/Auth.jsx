@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Auth.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Updated API URL - ensure it points to your running backend
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 function Auth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -192,14 +193,14 @@ function Auth({ onLogin }) {
     setError('');
     setLoading(true);
 
-    // Trigger Shatter Animation on Login Click
     setAnimationState('shatter');
-    
-    // Delay actual API call slightly to let animation start
     await new Promise(r => setTimeout(r, 800)); 
 
     try {
-      const endpoint = isLogin ? `${API_URL}/auth/login` : `${API_URL}/auth/register`;
+      const endpoint = isLogin ? `${API_URL}/api/auth/login` : `${API_URL}/api/auth/register`;
+      
+      console.log('Attempting to connect to:', endpoint); // Debug log
+      
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -214,11 +215,11 @@ function Auth({ onLogin }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setAnimationState('error'); // Changed from idle
+        setAnimationState('error');
         throw new Error(data.error || 'Authentication failed');
       }
 
-      setAnimationState('success'); // Optional success state if not shattering
+      setAnimationState('success');
       localStorage.setItem('token', data.token);
       localStorage.setItem('userEmail', data.email);
       
@@ -227,9 +228,9 @@ function Auth({ onLogin }) {
       }, 500);
       
     } catch (err) {
-      setAnimationState('error'); // Changed from idle
+      setAnimationState('error');
       setError(err.message);
-      setTimeout(() => setAnimationState('idle'), 2000); // Reset after 2s
+      setTimeout(() => setAnimationState('idle'), 2000);
     } finally {
       setLoading(false);
     }
@@ -243,8 +244,9 @@ function Auth({ onLogin }) {
 
     try {
       if (resetStep === 1) {
-        // Request reset code
-        const res = await fetch('/api/auth/forgot-password', {
+        console.log('Connecting to:', `${API_URL}/api/auth/forgot-password`); // Debug log
+        
+        const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email }),
@@ -252,6 +254,7 @@ function Auth({ onLogin }) {
 
         const contentType = res.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
+          console.error('Backend not responding with JSON'); // Debug log
           throw new Error('Cannot connect to server. Make sure backend is running.');
         }
 
@@ -261,18 +264,14 @@ function Auth({ onLogin }) {
           throw new Error(data.error || 'Failed to send reset code');
         }
 
-        // Check if email was sent or if we got a fallback code
         if (data.resetToken) {
-          // Fallback mode (email service unavailable) - hide the code
-          setGeneratedCode(data.resetToken);
-          setSuccess(`⚠️ Email service is currently unavailable. Please check backend console for the reset code.`);
+          setSuccess(`⚠️ Reset code: ${data.resetToken} (Email service unavailable)`);
         } else {
-          // Email sent successfully
           setSuccess(`✅ Reset code sent to ${email}! Check your inbox.`);
         }
         setResetStep(2);
       } else if (resetStep === 2) {
-        const res = await fetch('/api/auth/verify-reset-token', {
+        const res = await fetch(`${API_URL}/api/auth/verify-reset-token`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, resetToken: resetCode }),
@@ -292,7 +291,7 @@ function Auth({ onLogin }) {
         setSuccess('Code verified! Enter your new password.');
         setResetStep(3);
       } else if (resetStep === 3) {
-        const res = await fetch('/api/auth/reset-password', {
+        const res = await fetch(`${API_URL}/api/auth/reset-password`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, resetToken: resetCode, newPassword }),
@@ -319,6 +318,7 @@ function Auth({ onLogin }) {
         }, 2000);
       }
     } catch (err) {
+      console.error('Forgot password error:', err); // Debug log
       setError(err.message);
     } finally {
       setLoading(false);
